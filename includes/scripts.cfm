@@ -15,6 +15,8 @@
 <script src="bower_components/ckeditor/ckeditor.js"></script>
 <script src="https://smtpjs.com/v3/smtp.js "></script>
 <script>
+<script src="https://www.google.com/recaptcha/api.js"></script>
+<script>
 $(function() {
     // Datatable
     $('#example1').DataTable()
@@ -47,13 +49,13 @@ $(function() {
         var product = $(this).serialize();
         $.ajax({
             type: 'POST',
-            url: 'cart_add.php',
+            url: 'cart_add.cfm',
             data: product,
             dataType: 'json',
             success: function(response) {
                 $('#callout').show();
-                $('.message').html(response.message);
-                if (response.error) {
+                $('.message').text(response.MESSAGE);
+                if (response.ERROR) {
                     $('#callout').removeClass('callout-success').addClass(
                         'callout-danger');
                 } else {
@@ -74,7 +76,7 @@ $(function() {
 function getCart() {
     $.ajax({
         type: 'POST',
-        url: 'cart_fetch.php',
+        url: 'cart_fetch.cfm',
         dataType: 'json',
         success: function(response) {
             $('#cart_menu').html(response.list);

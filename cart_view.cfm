@@ -1,10 +1,10 @@
-<?php include 'includes/session.php'; ?>
-<?php include 'includes/header.php'; ?>
+<cfinclude template="includes/session.cfm">
+<cfinclude template="includes/header.cfm">
 
 <body class="hold-transition skin-blue layout-top-nav">
     <div class="wrapper">
 
-        <?php include 'includes/navbar.php'; ?>
+        <cfinclude template="includes/navbar.cfm">
 
         <div class="content-wrapper">
             <div class="container">
@@ -30,32 +30,27 @@
                                     </table>
                                 </div>
                             </div>
-                            <?php
-	        			if(isset($_SESSION['user'])){
-	        				echo "
-	        					<div id='paypal-button'></div>
-	        				";
-	        			}
-	        			else{
-	        				echo "
-	        					<h4>You need to <a href='login.php'>Login</a> to checkout.</h4>
-	        				";
-	        			}
-	        		?>
+
+                            <cfoutput>
+                                <cfif structKeyExists(session, "user")>
+                                    <div id='paypal-button'></div>
+                                <cfelse>
+                                    <h4>You need to <a href='login.cfm'>Login</a> to checkout.</h4>
+                                </cfif>
+                            </cfoutput>
                         </div>
                         <div class="col-sm-3">
-                            <?php include 'includes/sidebar.php'; ?>
+                            <cfinclude template="includes/sidebar.cfm">
                         </div>
                     </div>
                 </section>
 
             </div>
         </div>
-        <?php $pdo->close(); ?>
-        <?php include 'includes/footer.php'; ?>
+        <cfinclude template="includes/footer.cfm">
     </div>
 
-    <?php include 'includes/scripts.php'; ?>
+    <cfinclude template="includes/scripts.cfm">
     <script>
     var total = 0;
     $(function() {
@@ -64,7 +59,7 @@
             var id = $(this).data('id');
             $.ajax({
                 type: 'POST',
-                url: 'cart_delete.php',
+                url: 'cart_delete.cfm',
                 data: {
                     id: id
                 },
@@ -89,7 +84,7 @@
             $('#qty_' + id).val(qty);
             $.ajax({
                 type: 'POST',
-                url: 'cart_update.php',
+                url: 'cart_update.cfm',
                 data: {
                     id: id,
                     qty: qty,
@@ -113,7 +108,7 @@
             $('#qty_' + id).val(qty);
             $.ajax({
                 type: 'POST',
-                url: 'cart_update.php',
+                url: 'cart_update.cfm',
                 data: {
                     id: id,
                     qty: qty,
@@ -137,10 +132,12 @@
     function getDetails() {
         $.ajax({
             type: 'POST',
-            url: 'cart_details.php',
+            url: 'cart_details.cfm',
             dataType: 'json',
             success: function(response) {
+                // isempty
                 $('#tbody').html(response);
+                console.log(response)
                 getCart();
             }
         });
@@ -149,7 +146,7 @@
     function getTotal() {
         $.ajax({
             type: 'POST',
-            url: 'cart_total.php',
+            url: 'cart_total.cfm',
             dataType: 'json',
             success: function(response) {
                 total = response;
@@ -190,7 +187,7 @@
 
         onAuthorize: function(data, actions) {
             return actions.payment.execute().then(function(payment) {
-                window.location = 'sales.php?pay=' + payment.id;
+                window.location = 'sales.cfm?pay=' + payment.id;
             });
         },
 

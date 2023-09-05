@@ -1,9 +1,9 @@
-<?php include 'includes/session.php'; ?>
-<?php include 'includes/header.php'; ?>
+<cfinclude template="includes/session.cfm">
+<cfinclude template="includes/header.cfm">
 <body class="hold-transition skin-blue layout-top-nav">
 <div class="wrapper">
 
-	<?php include 'includes/navbar.php'; ?>
+	<cfinclude template="includes/navbar.cfm">
 	 
 	  <div class="content-wrapper">
 	    <div class="container">
@@ -12,58 +12,66 @@
 	      <section class="content">
 	        <div class="row">
 	        	<div class="col-sm-9">
-	            <?php
-	       			
-	       			$conn = $pdo->open();
+				<cfscript>
+					if( CGI.REQUEST_METHOD EQ "POST" ) {
+						search_param = form.keyword
+						queryService = new query();
+						queryService.setDatasource("fashion");
+						queryService.setName("productparamResult");
+						queryService.addParam(name="keyword",value="#search_param#",cfsqltype="CF_SQL_VARCHAR");
+						result = queryService.execute(sql="SELECT COUNT(*) AS numrows FROM products WHERE name LIKE :keyword");
+						productparamResult = result.getResult();
+						getProductserchInfo = result.getPrefix();
 
-	       			$stmt = $conn->prepare("SELECT COUNT(*) AS numrows FROM products WHERE name LIKE :keyword");
-	       			$stmt->execute(['keyword' => '%'.$_POST['keyword'].'%']);
-	       			$row = $stmt->fetch();
-	       			if($row['numrows'] < 1){
-	       				echo '<h1 class="page-header">No results found for <i>'.$_POST['keyword'].'</i></h1>';
-	       			}
-	       			else{
-	       				echo '<h1 class="page-header">Search results for <i>'.$_POST['keyword'].'</i></h1>';
-		       			try{
-		       			 	$inc = 3;	
-						    $stmt = $conn->prepare("SELECT * FROM products WHERE name LIKE :keyword");
-						    $stmt->execute(['keyword' => '%'.$_POST['keyword'].'%']);
-					 
-						    foreach ($stmt as $row) {
-						    	$highlighted = preg_filter('/' . preg_quote($_POST['keyword'], '/') . '/i', '<b>$0</b>', $row['name']);
-						    	$image = (!empty($row['photo'])) ? 'images/'.$row['photo'] : 'images/noimage.jpg';
-						    	$inc = ($inc == 3) ? 1 : $inc + 1;
-	       						if($inc == 1) echo "<div class='row'>";
-	       						echo "
-	       							<div class='col-sm-4'>
-	       								<div class='box box-solid'>
-		       								<div class='box-body prod-body'>
-		       									<img src='".$image."' width='100%' height='230px' class='thumbnail'>
-		       									<h5><a href='product.php?product=".$row['slug']."'>".$highlighted."</a></h5>
-		       								</div>
-		       								<div class='box-footer'>
-		       									<b>&#36; ".number_format($row['price'], 2)."</b>
-		       								</div>
-	       								</div>
-	       							</div>
-	       						";
-	       						if($inc == 3) echo "</div>";
-						    }
-						    if($inc == 1) echo "<div class='col-sm-4'></div><div class='col-sm-4'></div></div>"; 
-							if($inc == 2) echo "<div class='col-sm-4'></div></div>";
-							
+						if(productparamResult.numrows lt 1) {
+							WriteOutput('<h1 class="page-header">No results found for <i>#search_param#</i></h1>')
+						} else {
+							WriteOutput('<h1 class="page-header">Search results for <i>#search_param#</i></h1>')
 						}
-						catch(PDOException $e){
-							echo "There is some problem in connection: " . $e->getMessage();
+
+						
+						try {
+							inc = 3
+							queryService.setName("productserchResult");
+							queryService.addParam(name="keyword",value="#search_param#",cfsqltype="CF_SQL_VARCHAR");
+							result = queryService.execute(sql="SELECT * FROM products WHERE name LIKE :keyword");
+							productserchResult = result.getResult();
+							getProductserchInfo = result.getPrefix();
+
+							for(row in productserchResult) {
+								highlighted = reReplaceNoCase(#search_param#, "LOGINID=[^&]+&?", "")
+								image = (len(trim(row.photo)) GT 0) ? 'images/' & row.photo : 'images/profile.jpg'
+								inc = (inc EQ 3) ? 1 : inc + 1
+								if(inc == 1)  WriteOutput("<div class='row'>");
+								WriteOutput("
+									<div class='col-sm-4'>
+										<div class='box box-solid'>
+											<div class='box-body prod-body'>
+												<img src='#image#' width='100%' height='230px' class='thumbnail'>
+												<h5><a href='product.cfm?product=#row.slug#'>#highlighted#</a></h5>
+											</div>
+											<div class='box-footer'>
+												<b>&##36; #numberFormat(row['price'], 9)#</b>
+											</div>
+										</div>
+									</div>
+								")
+								if(inc EQ 3) WriteOutput("</div>")
+							}
+							if(inc EQ 1) WriteOutput("<div class='col-sm-4'></div><div class='col-sm-4'></div></div>") 
+							if(inc EQ 2) WriteOutput("<div class='col-sm-4'></div></div>")
 						}
+						catch(type database) {
+							WriteOutput(#cfcatch.message#)
+						}
+					} else {
+						WriteOutput('<h1 class="page-header">No results found. <i>Nothing to search</i></h1>')
 					}
+				</cfscript>
 
-					$pdo->close();
-
-	       		?> 
 	        	</div>
 	        	<div class="col-sm-3">
-	        		<?php include 'includes/sidebar.php'; ?>
+	        		<cfinclude template="includes/sidebar.cfm">
 	        	</div>
 	        </div>
 	      </section>
@@ -71,9 +79,9 @@
 	    </div>
 	  </div>
   
-  	<?php include 'includes/footer.php'; ?>
+  	<cfinclude template="includes/footer.cfm">
 </div>
 
-<?php include 'includes/scripts.php'; ?>
+<cfinclude template="includes/scripts.cfm">
 </body>
 </html>

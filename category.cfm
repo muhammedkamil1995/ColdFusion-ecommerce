@@ -1,28 +1,24 @@
-<?php include 'includes/session.php'; ?>
-<?php
-	$slug = $_GET['category'];
+<cfinclude template="includes/session.cfm">
+<cfparam name="url.category" default="">
+<cfset category = url.category>
+<cfscript>
+	queryService = new query();
+	queryService.setDatasource("fashion");
+	queryService.setName("cartegoryResult");
+	queryService.addParam(name="slug",value="#category#",cfsqltype="cf_sql_varchar");
+	result = queryService.execute(sql="SELECT * FROM category WHERE cat_slug = :slug");
+	cartegoryResult = result.getResult();
+	getCartegoryInfo = result.getPrefix();
+</cfscript>
 
-	$conn = $pdo->open();
+<cfset category_id = cartegoryResult.id >
 
-	try{
-		$stmt = $conn->prepare("SELECT * FROM category WHERE cat_slug = :slug");
-		$stmt->execute(['slug' => $slug]);
-		$cat = $stmt->fetch();
-		$catid = $cat['id'];
-	}
-	catch(PDOException $e){
-		echo "There is some problem in connection: " . $e->getMessage();
-	}
-
-	$pdo->close();
-
-?>
-<?php include 'includes/header.php'; ?>
+<cfinclude template="includes/header.cfm">
 
 <body class="hold-transition skin-blue layout-top-nav">
     <div class="wrapper">
 
-        <?php include 'includes/navbar.php'; ?>
+        <cfinclude template="includes/navbar.cfm">
 
         <div class="content-wrapper">
             <div class="container">
@@ -31,47 +27,55 @@
                 <section class="content">
                     <div class="row">
                         <div class="col-sm-9">
-                            <h1 class="page-header"><?=$cat['name']?></h1>
-                            <?php
-		       			
-		       			$conn = $pdo->open();
+                            <cfoutput><h1 class="page-header">#cartegoryResult.name#</h1></cfoutput>
+							<cftry>
+								<cfscript>
+									queryService = new query();
+									queryService.setDatasource("fashion");
+									queryService.setName("productCartegoryResult");
+									queryService.addParam(name="catid",value="#category_id#",cfsqltype="CF_SQL_INTEGER");
+									result = queryService.execute(sql="SELECT id, category_id, description, name, slug, price, photo FROM products WHERE category_id = :catid");
+									productCartegoryResult = result.getResult();
+									getProductCartegoryInfo = result.getPrefix();
+								</cfscript>
+								
+								<cfset inc = 3>
+								<cfloop query="productCartegoryResult">
+									<cfset image = (len(trim(productCartegoryResult.photo)) GT 0) ? 'images/' & productCartegoryResult.photo : 'images/noimage.jpg'>
+									<cfset inc = (inc EQ 3) ? 1 : inc + 1>
+									<cfif inc eq 1>
+										<div class='row'>
+									</cfif>
+										<div class='col-sm-4'>
+											<div class='box box-solid'>
+												<div class='box-body prod-body'>
+													<cfoutput><img src="#image#" width='100%' height='230px' class='thumbnail'></cfoutput>
+													<cfoutput><h5><a href="product.cfm?product=#productCartegoryResult.slug#">#productCartegoryResult.name#</a></h5></cfoutput>
+												</div>
+												<div class='box-footer'>
+													<b>&#36; <cfoutput>#numberFormat(productCartegoryResult.price, 9)#</cfoutput></b>
+												</div>
+											</div>
+										</div>
+									<cfif inc eq 3>
+										</div>
+									</cfif>
+								</cfloop>
+								<cfif inc eq 1>
+									<cfoutput><div class='col-sm-4'></div><div class='col-sm-4'></div></div></cfoutput>
+								</cfif>
+								<cfif inc eq 2>
+									<cfoutput><div class='col-sm-4'></div></div></cfoutput>
+								</cfif>
 
-		       			try{
-		       			 	$inc = 3;	
-						    $stmt = $conn->prepare("SELECT * FROM products WHERE category_id = :catid");
-						    $stmt->execute(['catid' => $catid]);
-						    foreach ($stmt as $row) {
-						    	$image = (!empty($row['photo'])) ? 'images/'.$row['photo'] : 'images/noimage.jpg';
-						    	$inc = ($inc == 3) ? 1 : $inc + 1;
-	       						if($inc == 1) echo "<div class='row'>";
-	       						echo "
-	       							<div class='col-sm-4'>
-	       								<div class='box box-solid'>
-		       								<div class='box-body prod-body'>
-		       									<img src='".$image."' width='100%' height='230px' class='thumbnail'>
-		       									<h5><a href='product.php?product=".$row['slug']."'>".$row['name']."</a></h5>
-		       								</div>
-		       								<div class='box-footer'>
-		       									<b>&#36; ".number_format($row['price'], 2)."</b>
-		       								</div>
-	       								</div>
-	       							</div>
-	       						";
-	       						if($inc == 3) echo "</div>";
-						    }
-						    if($inc == 1) echo "<div class='col-sm-4'></div><div class='col-sm-4'></div></div>"; 
-							if($inc == 2) echo "<div class='col-sm-4'></div></div>";
-						}
-						catch(PDOException $e){
-							echo "There is some problem in connection: " . $e->getMessage();
-						}
-
-						$pdo->close();
-
-		       		?>
+								
+							<cfcatch type="database">
+								<cfoutput>#cfcatch.message#</cfoutput>
+							</cfcatch>
+							</cftry>
                         </div>
                         <div class="col-sm-3">
-                            <?php include 'includes/sidebar.php'; ?>
+                            <cfinclude template="includes/sidebar.cfm">
                         </div>
                     </div>
                 </section>
@@ -79,10 +83,10 @@
             </div>
         </div>
 
-        <?php include 'includes/footer.php'; ?>
+        <cfinclude template="includes/footer.cfm">
     </div>
 
-    <?php include 'includes/scripts.php'; ?>
+    <cfinclude template="includes/scripts.cfm">
 </body>
 
 </html>

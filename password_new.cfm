@@ -1,55 +1,45 @@
-<?php
-	include 'includes/session.php';
+<cfinclude template="includes/session.cfm"> 
 
-	if(!isset($_GET['code']) OR !isset($_GET['user'])){
-		header('location: index.php');
-	    exit(); 
-	}
+	<cfif NOT structKeyExists(url, "code") OR NOT structKeyExists(url, "user")>
+    	<cflocation url="index.cfm">
+    	<cfexit>
+	</cfif>
+	
+	<cfset path = 'password_reset.cfm?code=' & url.code & '&user=' & url.user>
 
-	$path = 'password_reset.php?code='.$_GET['code'].'&user='.$_GET['user'];
+	<cfif structKeyExists(form, "reset")>
+   		<cfset password = form.password>
+    	<cfset repassword = form.repassword>
 
-	if(isset($_POST['reset'])){
-		$password = $_POST['password'];
-		$repassword = $_POST['repassword'];
+    <cfif password neq repassword>
+        <cfset session.error = 'Passwords did not match'>
+        <cflocation url="#path#">
+    <cfelse>
 
-		if($password != $repassword){
-			$_SESSION['error'] = 'Passwords did not match';
-			header('location: '.$path);
-		}
-		else{
-			$conn = $pdo->open();
+        <cfquery name="checkResetCode" datasource="fashion">
+            SELECT *, COUNT(*) AS numrows FROM users WHERE reset_code = url.code AND id = url.user
+        </cfquery>
 
-			$stmt = $conn->prepare("SELECT *, COUNT(*) AS numrows FROM users WHERE reset_code=:code AND id=:id");
-			$stmt->execute(['code'=>$_GET['code'], 'id'=>$_GET['user']]);
-			$row = $stmt->fetch();
-
-			if($row['numrows'] > 0){
-				$password = password_hash($password, PASSWORD_DEFAULT);
-
-				try{
-					$stmt = $conn->prepare("UPDATE users SET password=:password WHERE id=:id");
-					$stmt->execute(['password'=>$password, 'id'=>$row['id']]);
-
-					$_SESSION['success'] = 'Password successfully reset';
-					header('location: login.php');
-				}
-				catch(PDOException $e){
-					$_SESSION['error'] = $e->getMessage();
-					header('location: '.$path);
-				}
-			}
-			else{
-				$_SESSION['error'] = 'Code did not match with user';
-				header('location: '.$path);
-			}
-
-			$pdo->close();
-		}
-
-	}
-	else{
-		$_SESSION['error'] = 'Input new password first';
-		header('location: '.$path);
-	}
-
-?>
+        <cfif checkResetCode.numrows gt 0>
+            <cfset hashedPassword = hash(password, 'SHA-512', "UTF-8")>
+            <cftry>
+                <cfquery name="updatePassword" datasource="fashion">
+                    UPDATE users SET password = hashedPassword WHERE id = url.user
+                </cfquery>
+                <cfset session.success = 'Password successfully reset'>
+                <cflocation url="login.cfm">
+            <cfcatch type="any">
+                <cfset session.error = cfcatch.message>
+                <cflocation url="#path#">
+            </cfcatch>
+            </cftry>
+        <cfelse>
+            <cfset session.error = 'Code did not match with user'>
+            <cflocation url="#path#">
+        </cfif>
+    </cfelse>
+<cfelse>
+    <cfset session.error = 'Input new password first'>
+    <cflocation url="#path#">
+</cfif>
+	

@@ -1,36 +1,29 @@
-<?php include 'includes/session.php'; ?>
-<?php
-	$conn = $pdo->open();
-
-	$slug = $_GET['product'];
-
-	try{
-		 		
-	    $stmt = $conn->prepare("SELECT *, p.name AS prodname, c.name AS catname, 
+<cfinclude template="includes/session.cfm">
+<cfparam name="url.category" default="">
+<cfset product = url.product>
+<cfscript>
+	queryService = new query();
+	queryService.setDatasource("fashion");
+	queryService.setName("productResult");
+	queryService.addParam(name="slug",value="#product#",cfsqltype="cf_sql_varchar");
+	result = queryService.execute(sql="SELECT *, p.name AS prodname, c.name AS catname, 
 			p.id AS prodid FROM products p
-			LEFT JOIN category c ON c.id=p.category_id WHERE slug = :slug
-		");
-	    $stmt->execute(['slug' => $slug]);
-	    $product = $stmt->fetch();
-		
-	}
-	catch(PDOException $e){
-		echo "There is some problem in connection: " . $e->getMessage();
-	}
+			LEFT JOIN category c ON c.id=p.category_id WHERE slug = :slug");
+	productResult = result.getResult();
+    // p.category_id, p.description, p.slug, p.price, p.photo, p.date_view, c.cat_slug
 
-	//page view
-	$now = date('Y-m-d');
-	if($product['date_view'] == $now){
-		$stmt = $conn->prepare("UPDATE products SET counter=counter+1 WHERE id=:id");
-		$stmt->execute(['id'=>$product['prodid']]);
+    now = LSDateFormat(now(), 'yyyy-mm-dd');
+    if(productResult.date_view == now){
+        queryService.addParam(name="id",value="#productResult.prodid#",cfsqltype="CF_SQL_INTEGER");
+		result = queryService.execute(sql="UPDATE products SET counter=counter+1 WHERE id=:id");
+	}else{
+        queryService.addParam(name="id",value="#productResult.prodid#",cfsqltype="CF_SQL_INTEGER");
+        queryService.addParam(name="now",value="#now#",cfsqltype="CF_SQL_DATE");
+		result = queryService.execute(sql="UPDATE products SET counter=1, date_view=:now WHERE id=:id");
 	}
-	else{
-		$stmt = $conn->prepare("UPDATE products SET counter=1, date_view=:now WHERE id=:id");
-		$stmt->execute(['id'=>$product['prodid'], 'now'=>$now]);
-	}
+</cfscript>
 
-?>
-<?php include 'includes/header.php'; ?>
+<cfinclude template="includes/header.cfm">
 
 <body class="hold-transition skin-blue layout-top-nav">
     <script>
@@ -45,7 +38,7 @@
     </script>
     <div class="wrapper">
 
-        <?php include 'includes/navbar.php'; ?>
+        <cfinclude template="includes/navbar.cfm">
 
         <div class="content-wrapper">
             <div class="container">
@@ -60,9 +53,10 @@
                             </div>
                             <div class="row">
                                 <div class="col-sm-6">
-                                    <img src="<?php echo (!empty($product['photo'])) ? 'images/'.$product['photo'] : 'images/noimage.jpg'; ?>"
+                                    <cfset image = (len(trim(productResult.photo)) GT 0) ? 'images/' & productResult.photo : 'images/noimage.jpg'>
+                                    <cfoutput><img src="#image#"
                                         width="100%" class="zoom"
-                                        data-magnify-src="images/large-<?php echo $product['photo']; ?>">
+                                        data-magnify-src="images/large-#image#"></cfoutput>
                                     <br><br>
                                     <form class="form-inline" id="productForm">
                                         <div class="form-group">
@@ -81,8 +75,8 @@
                                                             class="fa fa-plus"></i>
                                                     </button>
                                                 </span>
-                                                <input type="hidden" value="<?php echo $product['prodid']; ?>"
-                                                    name="id">
+                                                <cfoutput><input type="hidden" value="#productResult.prodid#"
+                                                    name="id"></cfoutput>
                                             </div>
                                             <button type="submit" class="btn btn-primary btn-lg btn-flat"><i
                                                     class="fa fa-shopping-cart"></i> Add to Cart</button>
@@ -90,33 +84,33 @@
                                     </form>
                                 </div>
                                 <div class="col-sm-6">
-                                    <h1 class="page-header"><?php echo $product['prodname']; ?></h1>
-                                    <h3><b>&#36; <?php echo number_format($product['price'], 2); ?></b></h3>
-                                    <p><b>Category:</b> <a
-                                            href="category.php?category=<?php echo $product['cat_slug']; ?>"><?php echo $product['catname']; ?></a>
+                                    <h1 class="page-header"><cfoutput>#productResult.prodname#</cfoutput></h1>
+                                    <h3><b>&#36; <cfoutput>#numberFormat(productResult.price, 9)#</cfoutput></b></h3>
+                                    <p><b>Category:</b> <cfoutput><a
+                                            href="category.cfm?category=#productResult.cat_slug#">#productResult.catname#</a></cfoutput>
                                     </p>
                                     <p><b>Description:</b></p>
-                                    <p><?php echo $product['description']; ?></p>
+                                    <p><cfoutput>#productResult.description#</cfoutput></p>
                                 </div>
                             </div>
                             <br>
+                            <cfoutput>
                             <div class="fb-comments"
-                                data-href="http://localhost/ecommerce/product.php?product=<?php echo $slug; ?>"
-                                data-numposts="10" width="100%"></div>
+                                data-href="http://localhost/ecommerce/product.php?product=#product#"
+                                data-numposts="10" width="100%"></div></cfoutput>
                         </div>
                         <div class="col-sm-3">
-                            <?php include 'includes/sidebar.php'; ?>
+                            <cfinclude template="includes/sidebar.cfm">
                         </div>
                     </div>
                 </section>
 
             </div>
         </div>
-        <?php $pdo->close(); ?>
-        <?php include 'includes/footer.php'; ?>
+        <cfinclude template="includes/footer.cfm">
     </div>
 
-    <?php include 'includes/scripts.php'; ?>
+    <cfinclude template="includes/scripts.cfm">
     <script>
     $(function() {
         $('#add').click(function(e) {

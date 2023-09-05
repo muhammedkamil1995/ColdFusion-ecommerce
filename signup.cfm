@@ -5,11 +5,87 @@
 </cfif>
 
 <cfif structKeyExists(session, "captcha")>
-    <cfset now = time()>
-    <cfif now >= structKeyExists(session, "captcha") >
+    <cfset now = Now()>
+    <cfset captchaTime = session.captcha>
+    <cfif now GTE captchaTime>
       <cfset structDelete(session, "captcha")>
     </cfif>
 </cfif>
+
+
+<!--<cfset message = "
+                    <h2>Thank you for Registering.</h2>
+                    <p>Your Account:</p>
+                    <p>Please click the link below to activate your account.</p>
+                ">
+
+<cfscript>
+    subject = 'Welcome to Afric Comm'
+    mailFrom = 'kamzyocoded@gmail.com'
+    mailerService = new mail();
+    mailerService.setTo('kamzycoded@rocketmail.com');
+    mailerService.setUsername(mailFrom);
+    mailerService.setServer('smtp.gmail.com');
+    mailerService.setPassword('vqrpuldbikmeyrfu');
+    mailerService.setFrom(mailFrom);
+    mailerService.setSubject(subject);
+    mailerService.setType("html");
+    mailerService.send(body=message);
+</cfscript> 
+
+<cfmail to="kamzycoded@rocketmail.com"
+	from="kamzyocoded@gmail.com"
+	subject="Welcome to Bedrock"
+	type="text" 
+    server="smtp.gmail.com" 
+    username="kamzycoded@rocketmail.com"
+    password="vqrpuldbikmeyrfu">
+	Dear Kamil
+
+	We, here at Bedrock, would like to thank you for joining.
+
+	Attached is a PDF document outlining our terms and conditions.
+
+	Best wishes
+	Barney
+</cfmail>
+-->
+
+<!--<cfmail to="tulbadex@rocketmail.com"
+	from="kamzyocoded@gmail.com"
+	subject="Welcome to Bedrock"
+	type="text" 
+>
+	Dear Kamil
+
+	We, here at Bedrock, would like to thank you for joining.
+
+	Attached is a PDF document outlining our terms and conditions.
+
+	Best wishes
+	Barney
+</cfmail>-->
+
+<cfmail 
+    to="tulbadex@rocketmail.com" 
+    from="kamzyocoded@gmail.com" 
+    subject="Welcome to Africomm" 
+    type="html" 
+    server="smtp.gmail.com" 
+    port="587" 
+    username="kamzyocoded@gmail.com" 
+    password="vqrpuldbikmeyrfu" 
+    useTLS="true" 
+>
+    Dear Kamil
+
+	We, here at Bedrock, would like to thank you for joining.
+
+	Attached is a PDF document outlining our terms and conditions.
+
+	Best wishes
+	Barney
+</cfmail>
 
 <cfinclude template="includes/header.cfm">
 
@@ -33,8 +109,10 @@
 
         <div class="register-box-body">
             <p class="login-box-msg">Register a new membership</p>
+            <!--<cfset code = createUUID()>
+            <cfoutput>#code#</cfoutput>-->
 
-            <form action="register.php" method="POST">
+            <form action="register.cfm" method="POST">
 
                 <div class="form-group has-feedback">
                     <input type="text" class="form-control" name="firstname" placeholder="Firstname"
@@ -72,7 +150,7 @@
                     <span class="glyphicon glyphicon-log-in form-control-feedback"></span>
                 </div>
 
-                <cfif !structKeyExists(session, "captcha")>
+                <cfif not structKeyExists(session, "captcha")>
                     <div class="form-group" style="width:100%;">
                         <div class="g-recaptcha" data-sitekey="6LdbMx4nAAAAABF4HQSlqIwMxyUdDq21Lu66HrHl"></div>
                     </div>

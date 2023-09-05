@@ -1,3 +1,135 @@
+<cfinclude template="includes/session.cfm">
+
+<cfif structKeyExists(form, "submit")>
+
+    <!-- Get form inputs -->
+    <cfset name = trim(form.name)>
+    <cfset email = trim(form.email)>
+    <cfset subject = trim(form.subject)>
+    <cfset message = trim(form.message)>
+
+    <!-- Store form inputs in session -->
+    <cfset session.name = name>
+    <cfset session.email = email>
+    <cfset session.subject = subject>
+    <cfset session.message = message>
+
+    <!-- Validate name -->
+    <cfif len(name) EQ 0>
+        <cfset session.error = 'Name is required'>
+        <cflocation url="contact.cfm">
+    </cfif>
+    
+    <cfif not reFind("^[a-zA-Z-' ]*$", name)>
+        <cfset session.error = 'Name must contain only letters'>
+        <cflocation url="contact.cfm">
+    </cfif>
+
+    <cfif len(name) GT 20>
+        <cfset session.error = 'Name can not be more than 20 characters'>
+        <cflocation url="contact.cfm">
+    </cfif>
+
+    <cfif len(name) LT 3>
+        <cfset session.error = 'Name can not be less than 3 characters'>
+        <cflocation url="contact.cfm">
+    </cfif>
+
+    <!-- Validate email -->
+    <cfif len(email) EQ 0>
+        <cfset session.error = 'Email is required'>
+        <cflocation url="contact.cfm">
+    </cfif>
+
+    <cfif not isValid("email", email)>
+        <cfset session.error = 'Invalid email format'>
+        <cflocation url="contact.cfm">
+    </cfif>
+
+    <!-- Validate subject -->
+    <cfif len(subject) EQ 0>
+        <cfset session.error = 'Subject is required'>
+        <cflocation url="contact.cfm">
+    </cfif>
+
+    <cfif len(subject) GT 50>
+        <cfset session.error = 'Subject can not be more than 50 characters'>
+        <cflocation url="contact.cfm">
+    </cfif>
+
+    <cfif len(subject) LT 3>
+        <cfset session.error = 'Subject can not be less than 3 characters'>
+        <cflocation url="contact.cfm">
+    </cfif>
+
+    <!-- Validate message -->
+    <cfif len(message) EQ 0>
+        <cfset session.error = 'Message must contain some information'>
+        <cflocation url="contact.cfm">
+    </cfif>
+
+    <cfif len(message) GT 1000>
+        <cfset session.error = 'Message can not be more than 1000 characters'>
+        <cflocation url="contact.cfm">
+    </cfif>
+
+    <cfif len(message) LT 5>
+        <cfset session.error = 'Message can not be less than 5 characters'>
+        <cflocation url="contact.cfm">
+    </cfif>
+
+   
+
+</cfif>
+
+<!-- Check if the form was submitted -->
+<cfif structKeyExists(form, "submit")>
+
+    <!-- Get form inputs -->
+    <cfset name = trim(form.name)>
+    <cfset email = trim(form.email)>
+    <cfset subject = trim(form.subject)>
+    <cfset message = trim(form.message)>
+
+    <!-- Store form inputs in session -->
+    <cfset session.name = name>
+    <cfset session.email = email>
+    <cfset session.subject = subject>
+    <cfset session.message = message>
+
+    <!-- Prepare email content -->
+    <cfset messagemain = "
+        <h2>Contact Form Enquiry</h2>
+        <p>Your information was delivered successfully:</p>
+        <p>Email: #email#</p>
+        <p>Subject: #subject#</p>
+        <p>Name: #name#</p>
+        <p>Message: #message#</p>
+        <a href='#base_url#/ecommerce/'>Login</a>
+    ">
+
+    <cfset subjectmain = 'Contact us issue'>
+    <cfset sessionVariables = ['email', 'name', 'subject', 'message']>
+    <cfset success = 'Message Sent successfully.'>
+    <cfset error = 'Message could not be sent. Mailer Error: '>
+    <cfset redirect_success = 'contact.cfm'>
+
+    <!-- Call the mail_sender function to send the email -->
+    <cfset mail_sender(email, subjectmain, messagemain, sessionVariables, success, error, redirect_success, redirect_success)>
+
+    <!-- Redirect to a success page or display a success message here -->
+    <cflocation url="#redirect_success#">
+
+<cfelse>
+    <!-- If the form was not submitted directly without form submission -->
+    <cfset session.error = 'Error while sending your message'>
+    <cflocation url="contact.cfm">
+</cfif>
+
+
+
+
+
 <?php
 
 include 'includes/session.php';

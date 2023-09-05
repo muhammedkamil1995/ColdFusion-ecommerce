@@ -3,6 +3,7 @@
 <cfif structKeyExists(session, "user")>
     <cflocation url="cart_view.cfm">
 </cfif>
+
 <cfinclude template="includes/header.cfm">
 
 <body class="hold-transition login-page">
@@ -26,9 +27,9 @@
         <div class="login-box-body">
             <p class="login-box-msg">Sign in to start your session</p>
 
-            <form action="verify.php" method="POST">
+            <form action="verify.cfm" method="POST">
                 <div class="form-group has-feedback">
-                    <input type="email" class="form-control" name="email" placeholder="Email" required>
+                    <input type="email" class="form-control" name="email" placeholder="Email" value="<cfoutput>#session.email ?: ''#</cfoutput>" required>
                     <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
                 </div>
                 <div class="form-group has-feedback">

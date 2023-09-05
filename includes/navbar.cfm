@@ -64,35 +64,40 @@
                         </ul>
                     </li>
                     <cfif structKeyExists(session, "user")>
-                    <cfset image = (not isEmpty(user['photo'])) ? 'images/' & user['photo'] : 'images/profile.jpg'>
-                    <li class="dropdown user user-menu">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                        <img src="#image#" class="user-image" alt="User Image">
-                        <span class="hidden-xs">#user['firstname']# #user['lastname']#</span>
-                    </a>
-                    <ul class="dropdown-menu">
-                            <!-- User image -->
-                        <li class="user-header">
-                        <img src="#image#" class="img-circle" alt="User Image">
-                    <p>
-                    #user['firstname']# #user['lastname']#
-                    <small>Member since #dateFormat(user['created_on'], 'MMM. Y')#</small>
-                </p>
-            </li>
-            <li class="user-footer">
-                <div class="pull-left">
-                    <a href="profile.cfm" class="btn btn-default btn-flat">Profile</a>
-                </div>
-                <div class="pull-right">
-                    <a href="logout.cfm" class="btn btn-default btn-flat">Sign out</a>
-                </div>
-            </li>
-        </ul>
-    </li>
-<cfelse>
-    <li><a href="login.cfm">LOGIN</a></li>
-    <li><a href="signup.cfm">SIGNUP</a></li>
-</cfif>
+                        <li class="dropdown user user-menu">
+
+                            <cfset image = (len(trim(getUserResult.photo)) GT 0) ? 'images/' & getUserResult.photo : 'images/profile.jpg'>
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <cfoutput>
+                                <img src="#image#" class="user-image" alt="User Image">
+                                <span class="hidden-xs">#getUserResult.firstname# #getUserResult.lastname#</span></cfoutput>
+                            </a>
+                            <ul class="dropdown-menu">
+                                    <!-- User image -->
+                                <li class="user-header">
+                                    <cfoutput>
+                                    <img src="#image#" class="img-circle" alt="User Image">
+                                    </cfoutput>
+                                    <p>
+                                        <cfoutput>#getUserResult.firstname# #getUserResult.lastname#</cfoutput>
+                                        <cfoutput><small>Member since #dateFormat(getUserResult.created_on, 'MMM. Y')#</small></cfoutput>
+                                    </p>
+                                </li>
+                                <li class="user-footer">
+                                    <div class="pull-left">
+                                        <a href="profile.cfm" class="btn btn-default btn-flat">Profile</a>
+                                    </div>
+                                    <div class="pull-right">
+                                        <a href="logout.cfm" class="btn btn-default btn-flat">Sign out</a>
+                                    </div>
+                                </li>
+                            </ul>
+                            
+                        </li>
+                    <cfelse>
+                        <li><a href="login.cfm">LOGIN</a></li>
+                        <li><a href="signup.cfm">SIGNUP</a></li>
+                    </cfif>
 
                 </ul>
             </div>
