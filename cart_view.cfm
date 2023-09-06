@@ -14,6 +14,10 @@
                     <div class="row">
                         <div class="col-sm-9">
                             <h1 class="page-header">YOUR CART</h1>
+                            <div class="callout" id="callout" style="display:none">
+                                <button type="button" class="close"><span aria-hidden="true">&times;</span></button>
+                                <span class="message"></span>
+                            </div>
                             <div class="box box-solid">
                                 <div class="box-body">
                                     <table class="table table-bordered">
@@ -65,11 +69,19 @@
                 },
                 dataType: 'json',
                 success: function(response) {
-                    if (!response.error) {
+                    $('#callout').show();
+                    $('.message').text(response.MESSAGE);
+                    if (!response.ERROR) {
+                        $('#callout').removeClass('callout-danger').addClass(
+                            'callout-success');
                         getDetails();
                         getCart();
                         getTotal();
+                    } else {
+                        $('#callout').removeClass('callout-success').addClass(
+                            'callout-danger');
                     }
+
                 }
             });
         });
@@ -91,10 +103,17 @@
                 },
                 dataType: 'json',
                 success: function(response) {
-                    if (!response.error) {
+                    $('#callout').show();
+                    $('.message').text(response.MESSAGE);
+                    if (!response.ERROR) {
+                        $('#callout').removeClass('callout-danger').addClass(
+                            'callout-success');
                         getDetails();
                         getCart();
                         getTotal();
+                    } else {
+                        $('#callout').removeClass('callout-success').addClass(
+                            'callout-danger');
                     }
                 }
             });
@@ -115,10 +134,17 @@
                 },
                 dataType: 'json',
                 success: function(response) {
-                    if (!response.error) {
+                    $('#callout').show();
+                    $('.message').text(response.MESSAGE);
+                    if (!response.ERROR) {
+                        $('#callout').removeClass('callout-danger').addClass(
+                            'callout-success');
                         getDetails();
                         getCart();
                         getTotal();
+                    } else {
+                        $('#callout').removeClass('callout-success').addClass(
+                            'callout-danger');
                     }
                 }
             });

@@ -79,8 +79,8 @@ function getCart() {
         url: 'cart_fetch.cfm',
         dataType: 'json',
         success: function(response) {
-            $('#cart_menu').html(response.list);
-            $('.cart_count').html(response.count);
+            $('#cart_menu').html(response.LIST);
+            $('.cart_count').html(response.COUNT);
         }
     });
 }
