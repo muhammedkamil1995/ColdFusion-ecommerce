@@ -109,8 +109,6 @@
 
         <div class="register-box-body">
             <p class="login-box-msg">Register a new membership</p>
-            <!--<cfset code = createUUID()>
-            <cfoutput>#code#</cfoutput>-->
 
             <form action="register.cfm" method="POST">
 

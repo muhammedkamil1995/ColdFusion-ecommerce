@@ -2,7 +2,7 @@
 
 	<cfif NOT structKeyExists(url, "code") OR NOT structKeyExists(url, "user")>
     	<cflocation url="index.cfm">
-    	<cfexit>
+    	<cfexit method = "exitTemplate">
 	</cfif>
 	
 	<cfset path = 'password_reset.cfm?code=' & url.code & '&user=' & url.user>
@@ -21,7 +21,13 @@
         </cfquery>
 
         <cfif checkResetCode.numrows gt 0>
-            <cfset hashedPassword = hash(password, 'SHA-512', "UTF-8")>
+            <cfscript> 
+                options = StructNew() 
+                options.rounds = 4 
+                options.version = "$2a" 
+            </cfscript>
+            <cfset hashedPassword = GenerateBCryptHash(password, options)>
+            
             <cftry>
                 <cfquery name="updatePassword" datasource="fashion">
                     UPDATE users SET password = hashedPassword WHERE id = url.user
@@ -29,7 +35,7 @@
                 <cfset session.success = 'Password successfully reset'>
                 <cflocation url="login.cfm">
             <cfcatch type="any">
-                <cfset session.error = cfcatch.message>
+                <cfset session.error = 'Error occurs while resetting password'>
                 <cflocation url="#path#">
             </cfcatch>
             </cftry>

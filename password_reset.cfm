@@ -2,7 +2,7 @@
 
 <cfif NOT structKeyExists(url, "code") OR NOT structKeyExists(url, "user")>
     <cflocation url="index.cfm">
-    <cfexit>
+    <cfexit method = "exitTemplate">
 </cfif>
 <cfinclude template="includes/header.cfm">
 
@@ -11,7 +11,9 @@
 
 <cfif structKeyExists(session, "error")>
     <div class="callout callout-danger text-center">
-        <p>#session.error#</p>
+        <<cfoutput>
+			<p>#session.error#</p>
+		</cfoutput>
     </div>
     <cfset structDelete(session, "error")>
 </cfif>

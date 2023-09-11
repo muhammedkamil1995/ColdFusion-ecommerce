@@ -266,7 +266,7 @@ ul {
                                             <div class="form-column col-md-8 col-sm-12 col-xs-12">
                                                 <div class="inner-column">
                                                     <div class="contact-form">
-                                                        <form method="post" action="mail.php" id="contact-form">
+                                                        <form method="post" action="mail.cfm" id="contact-form">
                                                             <div class="row clearfix">
                                                                 <div class="form-group col-md-6 col-sm-6 co-xs-12">
                                                                     <input type="text" name="name"

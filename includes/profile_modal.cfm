@@ -44,47 +44,49 @@
               <h4 class="modal-title"><b>Update Account</b></h4>
             </div>
             <div class="modal-body">
-              <form class="form-horizontal" method="POST" action="profile_edit.php" enctype="multipart/form-data">
+              <form class="form-horizontal" method="POST" action="profile_edit.cfm" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="firstname" class="col-sm-3 control-label">Firstname</label>
 
                     <div class="col-sm-9">
-                      <input type="text" class="form-control" id="firstname" name="firstname" value="<?php echo $user['firstname']; ?>">
+                      <input type="text" class="form-control" id="firstname" name="firstname" value="<cfoutput>#getUserResult.firstname#</cfoutput>">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="lastname" class="col-sm-3 control-label">Lastname</label>
 
                     <div class="col-sm-9">
-                      <input type="text" class="form-control" id="lastname" name="lastname" value="<?php echo $user['lastname']; ?>">
+                      <input type="text" class="form-control" id="lastname" name="lastname" value="<cfoutput>#getUserResult.lastname#</cfoutput>">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="email" class="col-sm-3 control-label">Email</label>
 
                     <div class="col-sm-9">
-                      <input type="text" class="form-control" id="email" name="email" value="<?php echo $user['email']; ?>">
+                      <input type="text" class="form-control" id="email" name="email" value="<cfoutput>#getUserResult.email#</cfoutput>">
                     </div>
                 </div>
-                <div class="form-group">
+
+                <!--<div class="form-group">
                     <label for="password" class="col-sm-3 control-label">Password</label>
 
                     <div class="col-sm-9">
-                      <input type="password" class="form-control" id="password" name="password" value="<?php echo $user['password']; ?>">
+                      <input type="password" class="form-control" id="password" name="password" value="<cfoutput>#getUserResult.password#</cfoutput>">
                     </div>
-                </div>
+                </div>-->
+
                 <div class="form-group">
                     <label for="contact" class="col-sm-3 control-label">Contact Info</label>
 
                     <div class="col-sm-9">
-                      <input type="text" class="form-control" id="contact" name="contact" value="<?php echo $user['contact_info']; ?>">
+                      <input type="text" class="form-control" id="contact" name="contact" value="<cfoutput>#getUserResult.contact_info#</cfoutput>">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="address" class="col-sm-3 control-label">Address</label>
 
                     <div class="col-sm-9">
-                      <textarea class="form-control" id="address" name="address"><?php echo $user['address']; ?></textarea>
+                      <textarea class="form-control" id="address" name="address"><cfoutput>#getUserResult.address#</cfoutput></textarea>
                     </div>
                 </div>
                 <div class="form-group">

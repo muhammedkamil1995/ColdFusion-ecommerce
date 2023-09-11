@@ -1,6 +1,6 @@
 <cfinclude template="includes/session.cfm"> 
 
-<cfif structKeyExists(session, "user")>
+<cfif not structKeyExists(session, "user")>
     <cflocation url="index.cfm">
 </cfif>
 
@@ -9,7 +9,7 @@
 <body class="hold-transition skin-blue layout-top-nav">
 <div class="wrapper">
 
-	<cfinclude template="includes/header.cfm">
+	<cfinclude template="includes/navbar.cfm">
 	 
 	  <div class="content-wrapper">
 	    <div class="container">
@@ -22,14 +22,14 @@
 					 <cfoutput>
       					<cfif structKeyExists(session, "error")>
           					<div class="callout callout-danger text-center">
-           					#session.error#
+           						#session.error#
           					</div>
           				<cfset structDelete(session, "error")>
       				 	</cfif>
 
       					<cfif structKeyExists(session, "success")>
           					<div class="callout callout-success text-center">
-            				#session.success#
+            					#session.success#
           				</div>
           				<cfset structDelete(session, "success")>
       					</cfif>
@@ -38,8 +38,8 @@
 	        		<div class="box box-solid">
 	        			<div class="box-body">
 	        				<div class="col-sm-3">
-    							<cfset userPhoto = (!isEmpty(user['photo'])) ? 'images/' & user['photo'] : 'images/profile.jpg'>
-    							<img src="#userPhoto#" width="100%">
+    							<cfset userPhoto = (len(trim(getUserResult.photo)) GT 0) ? 'images/' & getUserResult.photo : 'images/profile.jpg'>
+    							<cfoutput><img src="#userPhoto#" width="100%"></cfoutput>
 							</div>
 
 	        				<div class="col-sm-9">
@@ -52,15 +52,17 @@
 	        							<h4>Member Since:</h4>
 	        						</div>
 	        						<div class="col-sm-9">
-    									<h4>#user['firstname']# #user['lastname']#
-        								<span class="pull-right">
-            								<a href="#edit" class="btn btn-success btn-flat btn-sm" data-toggle="modal"><i class="fa fa-edit"></i> Edit</a>
-        								</span>
-    								</h4>
-   										 <h4>#user['email']#</h4>
-    									 <h4>#(isDefined('user['contact_info']') && !isEmpty(user['contact_info'])) ? user['contact_info'] : 'N/a'#</h4>
-    									 <h4>#(isDefined('user['address']') && !isEmpty(user['address'])) ? user['address'] : 'N/a'#</h4>
-    									 <h4>#dateFormat(user['created_on'], 'M d, Y')#</h4>
+    									<cfoutput>
+										<h4>#getUserResult.firstname# #getUserResult.lastname#
+											<span class="pull-right">
+												<a href="##edit" class="btn btn-success btn-flat btn-sm" data-toggle="modal"><i class="fa fa-edit"></i> Edit</a>
+											</span>
+										</h4>
+   										 <h4>#getUserResult.email#</h4>
+    									 <h4>#(len(getUserResult.contact_info) gt 0 ) ? getUserResult.contact_info : 'N/a'#</h4>
+    									 <h4>#( len(getUserResult.address) gt 0 ) ? getUserResult.address : 'N/a'#</h4>
+    									 <h4>#dateFormat(getUserResult.created_on, 'M d, Y')#</h4>
+										 </cfoutput>
 									</div>
 
 	        					</div>
@@ -85,7 +87,7 @@
 
 								<cftry>
     								<cfquery name="getSales" datasource="fashion">
-        							SELECT * FROM sales WHERE user_id = :user_id ORDER BY sales_date DESC
+        							SELECT * FROM sales WHERE user_id = #session.user# ORDER BY sales_date DESC
     							</cfquery>
 
     							<table>
@@ -114,10 +116,10 @@
 
             							<tr>
                 							<td class="hidden"></td>
-               								<td>#salesDate#</td>
-                							<td>#getSales.pay_id#</td>
-                							<td>&#36; #numberFormat(total, '9.99')#</td>
-                							<td><button class='btn btn-sm btn-flat btn-info transact' data-id='#getSales.id#'><i class='fa fa-search'></i> View</button></td>
+               								<cfoutput><td>#salesDate#</td></cfoutput>
+                							<cfoutput><td>#getSales.pay_id#</td></cfoutput>
+                							<cfoutput><td>&##36; #numberFormat(total, '9.99')#</td></cfoutput>
+                							<cfoutput><td><button class='btn btn-sm btn-flat btn-info transact' data-id='#getSales.id#'><i class='fa fa-search'></i> View</button></td></cfoutput>
             							</tr>
         							</cfloop>
     							</table>
@@ -136,7 +138,6 @@
 	        	</div>
 	        	<div class="col-sm-3">
 					<cfinclude template="includes/sidebar.cfm">	
-	        		
 	        	</div>
 	        </div>
 	      </section>
@@ -158,7 +159,7 @@ $(function(){
 		var id = $(this).data('id');
 		$.ajax({
 			type: 'POST',
-			url: 'transaction.php',
+			url: 'transaction.cfm',
 			data: {id:id},
 			dataType: 'json',
 			success:function(response){

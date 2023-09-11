@@ -22,7 +22,7 @@
   	<div class="login-box-body">
     	<p class="login-box-msg">Enter email associated with account</p>
 
-    	<form action="reset.php" method="POST">
+    	<form action="reset.cfm" method="POST">
       		<div class="form-group has-feedback">
         		<input type="email" class="form-control" name="email" placeholder="Email" required>
         		<span class="glyphicon glyphicon-envelope form-control-feedback"></span>

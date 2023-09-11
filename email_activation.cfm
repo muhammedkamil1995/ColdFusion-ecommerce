@@ -3,10 +3,12 @@
 <cfif structKeyExists(session, "user")>
     <cflocation url="cart_view.cfm">
 </cfif>
+
 <cfinclude template="includes/header.cfm">
 
 <body class="hold-transition login-page">
     <div class="login-box">
+
     <cfif structKeyExists(session, "error")>
         <div class="callout callout-danger text-center">
         <p>#session.error#</p>
@@ -24,7 +26,7 @@
         <div class="login-box-body">
             <p class="login-box-msg">Activat Account</p>
 
-            <form action="register.php" method="POST">
+            <form action="register.cfm" method="POST">
                 <div class="form-group has-feedback">
                     <input type="email" class="form-control" name="email" placeholder="Email" required>
                     <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
@@ -38,7 +40,7 @@
                 </div>
             </form>
             <br>
-            <a href="password_forgot.php">I forgot my password</a><br>
+            <a href="password_forgot.cfm">I forgot my password</a><br>
             <a href="signup.cfm" class="text-center">Register a new membership</a><br>
             <a href="index.cfm"><i class="fa fa-home"></i> Home</a>
         </div>

@@ -1,76 +1,92 @@
-<?php
-    include 'includes/session.php';
+<cfscript>
+    include 'includes/session.cfm';
 
-    if($_SERVER["REQUEST_METHOD"] == "POST") {
-        $_POST = json_decode(file_get_contents('php://input'), true);
+    if (CGI.REQUEST_METHOD EQ "POST") {
+        // Decode JSON data from the request
+        requestData = deserializeJSON(toString(getHttpRequestData().content));
 
-        $email = test_input($_POST['email']);
-        if(empty($email)){
-            $response_data = array(
-                'status' => false,
-                'message' => 'Email is required'
-            );
-			echo json_encode($response_data);
-            exit();
-		}
-
-		if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
-            $response_data = array(
-                'status' => false,
-                'message' => 'Invalid email format'
-            );
-			echo json_encode($response_data);
-            exit();
-		}
-
-        $conn = $pdo->open();
-
-		$stmt = $conn->prepare("SELECT COUNT(*) AS numrows FROM subscriber_list WHERE email=:email and status=:status");
-		$stmt->execute(['email'=>$email, 'status' => true]);
-		$row = $stmt->fetch();
-
-        if($row['numrows'] > 0){
-            $response_data = array(
-                'status' => false,
-                'message' => 'Email already subscribed',
-            );
-			echo json_encode($response_data);
-            exit();
+        email = trim(requestData.email);
+        if (len(email) EQ 0) {
+            response_data = {
+                'status': false,
+                'message': 'Email is required'
+            };
+            WriteOutput(serializeJSON(response_data));
+            abort;
         }
 
-        $stmt = $conn->prepare("SELECT COUNT(*) AS numrows FROM subscriber_list WHERE email=:email and status=:status");
-		$stmt->execute(['email'=>$email, 'status' => false]);
-		$row = $stmt->fetch();
-
-        if($row['numrows'] > 0){
-            $conn->prepare("UPDATE subscriber_list ST  status=:status WHERE email=:email");
-            $response_data = array(
-                'status' => true,
-                'message' => 'Email resubscribed successfully',
-            );
-			echo json_encode($response_data);
-            exit();
+        if (!isValid("email", email)) {
+            response_data = {
+                'status': false,
+                'message': 'Invalid email format'
+            };
+            WriteOutput(serializeJSON(response_data));
+            abort;
         }
 
-        $now = date("Y-m-d H:i:s");
-        $stmt = $conn->prepare(
-            "INSERT INTO subscriber_list (email, status, created_at, updated_at) 
-            VALUES (:email, :status, :created_at, :updated_at)"
-        );
-        $stmt->execute([
-            'email'=>$email, 
-            'status'=> true, 
-            'created_at'=>$now, 
-            'updated_at'=>$now
-        ]);
 
-        $response_data = array(
-            'status' => true,
-            'message' => 'Email subscribed successfully',
-        );
-        echo json_encode($response_data);
-        exit();
+        // Check if the email is already subscribed (status = true)
+        queryService = new query();
+        queryService.setDatasource("fashion"); // Set your actual datasource name
+        queryService.setName("checkSubscriber");
+        queryService.addParam(name="email", value=email, cfsqltype="CF_SQL_VARCHAR");
+        queryService.addParam(name="status", value=true, cfsqltype="CF_SQL_BIT");
+        queryService.setSQL("SELECT COUNT(*) AS numrows FROM subscriber_list WHERE email = :email AND status = :status");
+        queryService.execute();
 
-        
+        row = queryService.getResult().firstRow;
+        if (row.numrows GT 0) {
+            response_data = {
+                'status': false,
+                'message': 'Email already subscribed'
+            };
+            WriteOutput(serializeJSON(response_data));
+            queryService.close();
+            abort;
+        }
+
+        // Check if the email was previously unsubscribed (status = false)
+        queryService.clearParams();
+        queryService.addParam(name="email", value=email, cfsqltype="CF_SQL_VARCHAR");
+        queryService.addParam(name="status", value=false, cfsqltype="CF_SQL_BIT");
+        queryService.setSQL("SELECT COUNT(*) AS numrows FROM subscriber_list WHERE email = :email AND status = :status");
+        queryService.execute();
+
+        row = queryService.getResult().firstRow;
+        if (row.numrows GT 0) {
+            // Update the status to resubscribe
+            queryService.clearParams();
+            queryService.setSQL("UPDATE subscriber_list SET status = true WHERE email = :email");
+            queryService.addParam(name="email", value=email, cfsqltype="CF_SQL_VARCHAR");
+            queryService.execute();
+
+            response_data = {
+                'status': true,
+                'message': 'Email resubscribed successfully'
+            };
+            WriteOutput(serializeJSON(response_data));
+            queryService.close();
+            abort;
+        }
+
+        // Insert a new subscription record
+        now = createDateTime();
+        queryService.clearParams();
+        queryService.setSQL("
+            INSERT INTO subscriber_list (email, status, created_at, updated_at) 
+            VALUES (:email, :status, :created_at, :updated_at)
+        ");
+        queryService.addParam(name="email", value=email, cfsqltype="CF_SQL_VARCHAR");
+        queryService.addParam(name="status", value=true, cfsqltype="CF_SQL_BIT");
+        queryService.addParam(name="created_at", value=now, cfsqltype="CF_SQL_TIMESTAMP");
+        queryService.addParam(name="updated_at", value=now, cfsqltype="CF_SQL_TIMESTAMP");
+        queryService.execute();
+
+        response_data = {
+            'status': true,
+            'message': 'Email subscribed successfully'
+        };
+        WriteOutput(serializeJSON(response_data));
+        queryService.close();
     }
-?>
+</cfscript>
