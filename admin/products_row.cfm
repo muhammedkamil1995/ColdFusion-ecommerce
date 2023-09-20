@@ -1,19 +1,39 @@
-<cfinclude template="includes/session.cfm">
+<cfscript>
+    // Include necessary template
+    include 'includes/session.cfm';
 
-<cfif structKeyExists(form, "id")>
-	<cfset id = form.id>
+    // Check if 'id' key exists in the form
+    if (structKeyExists(form, "id")) {
+        // Get the 'id' value from the form
+        id = form.id;
 
-	<cfset conn = application.pdo.open()>
+        try {
+            // Create a query using queryService
+            queryService = new query();
+            queryService.setDatasource("fashion");
+            queryService.setSql("SELECT products.*, products.id AS prodid, products.name AS prodname, category.name AS catname FROM products LEFT JOIN category ON category.id = products.category_id WHERE products.id = :id");
+            queryService.addParam(name="id", value=id, cfsqltype="cf_sql_integer");
 
-	<cfquery datasource="#dsn#">
-		SELECT *, products.id AS prodid, products.name AS prodname, category.name AS catname 
-		FROM products 
-		LEFT JOIN category ON category.id = products.category_id 
-		WHERE products.id = <cfqueryparam value="#id#" cfsqltype="cf_sql_integer">
-	</cfquery>
-	<cfset row = queryGetRow(result)>
+            // Execute the query
+            queryResult = queryService.execute();
 
-	<cfset application.pdo.close()>
+            // Check if any rows were returned
+            if (queryResult.recordCount > 0) {
+                // Get the first row as a struct
+                row = queryResult.getRecord(1);
 
-	<cfoutput>#serializeJSON(row)#</cfoutput>
-</cfif>
+                // Serialize the struct to JSON
+                serializedRow = serializeJSON(row);
+
+                // Output the serialized JSON
+                writeOutput(serializedRow);
+            } else {
+                // Output an empty JSON object if no rows were found
+                writeOutput("{}");
+            }
+        } catch (any e) {
+            // Handle exceptions, e.g., log the error
+            writeOutput("Error: " & e.getMessage());
+        }
+    }
+</cfscript>

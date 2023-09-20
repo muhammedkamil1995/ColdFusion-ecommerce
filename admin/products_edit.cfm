@@ -1,37 +1,46 @@
-<cfinclude template="includes/session.cfm">
-<cfinclude template="includes/slugify.cfm">
+<cfscript>
+    include 'includes/session.cfm';
+    include 'includes/slugify.cfm';
 
-<cfif structKeyExists(form, "edit")>
-	<cfset id = form.id>
-	<cfset name = form.name>
-	<cfset slug = slugify(name)>
-	<cfset category = form.category>
-	<cfset price = form.price>
-	<cfset description = form.description>
-	
-	<cfset conn = application.pdo.open()>
+    if (structKeyExists(form, "edit")) {
+        id = form.id;
+        name = form.name;
+        slug = slugify(name);
+        category = form.category;
+        price = form.price;
+        description = form.description;
 
-	<cftry>
-		<cfquery datasource="#dsn#">
-			UPDATE products 
-			SET name = <cfqueryparam value="#name#" cfsqltype="cf_sql_varchar">,
-				slug = <cfqueryparam value="#slug#" cfsqltype="cf_sql_varchar">,
-				category_id = <cfqueryparam value="#category#" cfsqltype="cf_sql_integer">,
-				price = <cfqueryparam value="#price#" cfsqltype="cf_sql_decimal">,
-				description = <cfqueryparam value="#description#" cfsqltype="cf_sql_longvarchar">
-			WHERE id = <cfqueryparam value="#id#" cfsqltype="cf_sql_integer">
-		</cfquery>
+        try {
+            queryService = new query();
+            queryService.setDatasource("fashion");
+            queryService.setSql("UPDATE products SET name = :name, slug = :slug, category_id = :category, price = :price, description = :description WHERE id = :id");
+            queryService.addParam(name="name", value=name, cfsqltype="cf_sql_varchar");
+            queryService.addParam(name="slug", value=slug, cfsqltype="cf_sql_varchar");
+            queryService.addParam(name="category", value=category, cfsqltype="cf_sql_integer");
+            queryService.addParam(name="price", value=price, cfsqltype="cf_sql_decimal");
+            queryService.addParam(name="description", value=description, cfsqltype="cf_sql_longvarchar");
+            queryService.addParam(name="id", value=id, cfsqltype="cf_sql_integer");
+            result = queryService.execute();
 
-		<cfset session.success = "Product updated successfully">
-		<cfcatch type="any">
-			<cfset session.error = cfcatch.message>
-		</cfcatch>
-	</cftry>
 
-	<cfset application.pdo.close()>
+            if (result) {
+                session.success = "Product updated successfully";
+            }
+            else {
+                session.error = "Failed to update product";
+            }
+        }
+        catch (any e) {
+            session.error = e.getMessage();
+        }
+    }
+    else {
+        session.error = "Fill up edit product form first";
+    }
 
-	<cflocation url="products.cfm">
-<cfelse>
-	<cfset session.error = "Fill up edit product form first">
-	<cflocation url="products.cfm">
-</cfif>
+    location(url="products.cfm");
+</cfscript>
+
+
+
+

@@ -24,9 +24,9 @@
     </cfif>
 
         <div class="login-box-body">
-            <p class="login-box-msg">Activat Account</p>
+            <p class="login-box-msg">Activate Account</p>
 
-            <form action="register.cfm" method="POST">
+            <form action="activate_account.cfm" method="POST">
                 <div class="form-group has-feedback">
                     <input type="email" class="form-control" name="email" placeholder="Email" required>
                     <span class="glyphicon glyphicon-envelope form-control-feedback"></span>

@@ -3,11 +3,14 @@
      include 'includes/session.cfm';
 
     if (CGI.REQUEST_METHOD EQ "POST") {
-        if (structKeyExists(form, "submit")) {
+        if (structKeyExists(form, "contact-us")) {
             name = trim(form.name);
             email = trim(form.email);
             subject = trim(form.subject);
             message = trim(form.message);
+            // CGI.REMOTE_ADDR, REMOTE_HOST, SERVER_NAME 127.0.0.1
+            // writeDump(CGI.SERVER_PROTOCOL);
+            // exit;
 
             session.name = name;
             session.email = email;
@@ -17,11 +20,13 @@
             if (len(name) EQ 0) {
                 session.error = 'Name is required';
                 location(url="contact.cfm");
+                exit
             }
 
             if (not reFind("^[a-zA-Z-' ]*$", name)) {
                 session.error = 'Name must contain only letters';
                 location(url="contact.cfm");
+                exit
             }
 
             if (len(name) GT 20) {
@@ -74,6 +79,12 @@
                 location(url="contact.cfm");
             }
 
+            subject = 'Welcome to Afric Comm: Contact us issue';
+
+
+            base_url = CGI.REMOTE_ADDR
+
+            // Email content
             messagemain = "
                 <h2>Contact Form Enquiry</h2>
                 <p>Your information was delivered successfully:</p>
@@ -83,26 +94,35 @@
                 <p>Message: #message#</p>
                 <a href='#base_url#/ecommerce/'>Login</a>
             ";
+            redirect_success = "contact.cfm"
 
-            subjectmain = 'Contact us issue';
-            sessionVariables = ['email', 'name', 'subject', 'message'];
-            success = 'Message Sent successfully.';
-            error = 'Message could not be sent. Mailer Error: ';
-            redirect_success = 'contact.cfm';
+        
 
-            // Call the mail_sender function to send the email
-                    subject = 'Welcome to Afric Comm'
-                    mailFrom = 'kamzyocoded@gmail.com'
-                    mailerService = new mail();
-                    mailerService.setServer('smtp.gmail.com');
-                    mailerService.setUsername(mailFrom);
-                    mailerService.setPassword('vqrpuldbikmeyrfu');
-                    mailerService.setPort(465);
-                    mailerService.setTo(email);
-                    mailerService.setFrom(mailFrom);
-                    mailerService.setSubject(subject);
-                    mailerService.setType("html");
-                    mailerService.send(body=message);
+            
+
+            try {
+                // Create a cfhttp object
+                cfhttp = new http();
+
+
+                // Set the URL and method
+                cfhttp.setURL("http://127.0.0.1:4000/mail/contactmail");
+                cfhttp.setMethod("POST");
+
+
+
+                // Set the form fields
+                cfhttp.addParam(type="formfield", name="email", value=email);
+                cfhttp.addParam(type="formfield", name="message", value=messagemain);
+                cfhttp.addParam(type="formfield", name="subject", value=subject);
+
+                // Execute the HTTP request
+                response = cfhttp.send();
+                // Writeoutput(cfhttp.filecontent);
+                session.success = 'Message Sent successfully.';
+            } catch (any e) {
+                session.error = 'Message could not be sent. Mailer Error: ' & e.getMessage();
+            }
 
             // Redirect to a success page or display a success message here 
             location(url="#redirect_success#");

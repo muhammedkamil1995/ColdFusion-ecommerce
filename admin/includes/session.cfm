@@ -1,15 +1,35 @@
-<cfinclude template="../includes/conn.cfc">
+<CFAPPLICATION NAME="Afric Comm" SESSIONMANAGEMENT="Yes">
 <cfset session.admin = PreserveSingleQuotes(session.admin)>
 
-<cfif NOT StructKeyExists(session, "admin") OR Trim(session.admin) EQ "">
-    <cflocation url="../index.cfm" addtoken="false">
-    <cfabort>
+<cfif structKeyExists(session, "admin")>
+    <cflocation url="admin/home.cfm">
 </cfif>
 
-<cfset conn = Application.conn>
-<cfset stmt = conn.prepareStatement("SELECT * FROM users WHERE id=:id")>
-<cfset stmt.setSQLParameters({id: session.admin})>
-<cfset admin = stmt.executeQuery().getOne()>
+<cfif structKeyExists(session, "user")>
 
-<cfset stmt.close()>
-<cfset conn.close()>
+    <cftry>
+        <cfscript>
+            adminId = session.admin;
+
+             sql = "
+        SELECT *
+        FROM users
+        WHERE id = :adminId
+        ";
+
+        admin = {};
+
+            try {
+        admin = queryExecute(sql, {}, {datasource: "fashion"});
+
+        if (admin.recordCount > 0) {
+            admin = admin[1];
+                }
+        } 
+		</cfscript>
+        <cfcatch type="any">
+            <cfoutput>There is some problem in connection: #cfcatch.message#</cfoutput>
+        </cfcatch>
+    </cftry>
+    
+</cfif>

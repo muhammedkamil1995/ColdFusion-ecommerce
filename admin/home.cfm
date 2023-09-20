@@ -7,7 +7,7 @@
   <cfset year = url.year>
 </cfif>
 
-<cfset conn = Application.conn>
+
 <cfinclude template="includes/header.cfm">
 <body class="hold-transition skin-blue sidebar-mini">
 <div class="wrapper">
@@ -51,7 +51,7 @@
       <!-- small box -->
       <div class="small-box bg-aqua">
         <div class="inner">
-          <cfquery name="stmt" datasource="#dsn#">
+          <cfquery name="stmt" datasource="fashion">
             SELECT details.price, details.quantity
             FROM details
             LEFT JOIN products ON products.id=details.product_id
@@ -74,7 +74,7 @@
       <!-- small box -->
       <div class="small-box bg-green">
         <div class="inner">
-          <cfquery name="stmt" datasource="#dsn#">
+          <cfquery name="stmt" datasource="fashion">
             SELECT COUNT(*) AS numrows
             FROM products
           </cfquery>
@@ -92,7 +92,7 @@
       <!-- small box -->
       <div class="small-box bg-yellow">
         <div class="inner">
-          <cfquery name="stmt" datasource="#dsn#">
+          <cfquery name="stmt" datasource="fashion">
             SELECT COUNT(*) AS numrows
             FROM users
           </cfquery>
@@ -110,7 +110,7 @@
       <!-- small box -->
       <div class="small-box bg-red">
         <div class="inner">
-          <cfquery name="stmt" datasource="#dsn#">
+          <cfquery name="stmt" datasource="fashion">
             SELECT details.price, details.quantity
             FROM details
             LEFT JOIN sales ON sales.id=details.sales_id
@@ -177,7 +177,7 @@
 <cfset sales = []>
 <cfloop from="1" to="12" index="m">
   <cftry>
-    <cfquery name="stmt" datasource="#dsn#">
+    <cfquery name="stmt" datasource="fashion">
       SELECT details.price, details.quantity
       FROM details
       LEFT JOIN sales ON sales.id=details.sales_id
@@ -205,10 +205,7 @@
 <cfset monthsJSON = serializeJSON(months)>
 <cfset salesJSON = serializeJSON(sales)>
 
-<!-- End Chart Data -->
 
-<!-- Close the database connection if needed -->
-<cfset #dsn#.close()>
 
 <!-- Include the necessary scripts -->
 <cfinclude template="includes/scripts.cfm"> 
@@ -271,7 +268,7 @@ $(function(){
 <script>
 $(function(){
   $('#select_year').change(function(){
-    window.location.href = 'home.php?year='+$(this).val();
+    window.location.href = 'home.cfm?year='+$(this).val();
   });
 });
 </script>

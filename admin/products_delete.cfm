@@ -1,25 +1,32 @@
-<cfinclude template="includes/session.cfm">
+<cfscript>
+    include 'includes/session.cfm';
 
-<cfif structKeyExists(form, "delete")>
-	<cfset id = form.id>
-	
-	<cfset conn = application.pdo.open()>
+    if (structKeyExists(form, "delete")) {
+        id = form.id;
 
-	<cftry>
-		<cfquery datasource="#dsn#">
-			DELETE FROM products WHERE id = <cfqueryparam value="#id#" cfsqltype="cf_sql_integer">
-		</cfquery>
+        try {
+           
+            queryService = new query();
+            queryService.setDatasource("fashion");
+            queryService.setSql("DELETE FROM products WHERE id = :id");
+            queryService.addParam(name="id", value=id, cfsqltype="cf_sql_integer");
+            result = queryService.execute();
+          
 
-		<cfset session.success = "Product deleted successfully">
-		<cfcatch type="any">
-			<cfset session.error = cfcatch.message>
-		</cfcatch>
-	</cftry>
+            if (result) {
+                session.success = "Product deleted successfully";
+            }
+            else {
+                session.error = "Failed to delete product";
+            }
+        }
+        catch (any e) {
+            session.error = e.getMessage();
+        }
+    }
+    else {
+        session.error = "Select a product to delete first";
+    }
 
-	<cfset application.pdo.close()>
-
-	<cflocation url="products.cfm">
-<cfelse>
-	<cfset session.error = "Select product to delete first">
-	<cflocation url="products.cfm">
-</cfif>
+    location(url="products.cfm");
+</cfscript>

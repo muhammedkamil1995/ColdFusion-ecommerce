@@ -54,7 +54,6 @@
                     } */
                     
                     if (structKeyExists(fileUploadResult, "SERVERDIRECTORY")) {
-                        // filename = fileUploadResult.SERVERDIRECTORY & fileUploadResult.SERVERFILE;
                         filename = newFileName;
                         // check if file is available getUserResult.photo
                         if( len(getUserResult.photo) > 0 ) {

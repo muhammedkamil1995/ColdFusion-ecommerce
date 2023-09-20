@@ -1,7 +1,7 @@
 <cfinclude template="includes/session.cfm">
 
 <cfif CGI.REQUEST_METHOD EQ "POST">
-    <cfif structKeyExists(form, "signup")>
+    <cfif structKeyExists(form, "signup") and not structKeyExists(form, "activation")>
 
         <cfparam name="form.firstname" default="">
         <cfparam name="form.lastname" default="">
@@ -171,42 +171,69 @@
                         insertResultmetaInfo = result.getPrefix();
                     </cfscript>
 
-                    <cfset userid = insertResultmetaInfo.GENERATED_KEY>
 
-                    <!-- Email message -->
-                    <cfset message = "
+                    <cfscript>
+                    userid = insertResultmetaInfo.GENERATED_KEY;
+                    base_url = CGI.REMOTE_ADDR;
+
+                    // Define email and subject variables
+                    email = "#email#"; // Replace with the actual email
+                    subject = "Activation Email"; // Replace with the actual subject
+
+                    message = "
                         <h2>Thank you for Registering.</h2>
                         <p>Your Account:</p>
                         <p>Email: #email#</p>
                         <p>Please click the link below to activate your account.</p>
-                        <a href='#base_url#/ecommerce/activate.cfm?code=#code#&user=#userid#'>Activate Account</a>
-                    ">
+                        <a href='http://127.0.0.1:8500/africomm/activate.cfm?code=#code#&user=#userid#'>Activate Account</a>
+                    ";
+                    
 
-                    <cfscript>
-                        subject = 'Welcome to Afric Comm'
-                        mailFrom = 'kamzyocoded@gmail.com'
-                        mailerService = new mail();
-                        mailerService.setServer('smtp.gmail.com');
-                        mailerService.setUsername(mailFrom);
-                        mailerService.setPassword('vqrpuldbikmeyrfu');
-                        mailerService.setPort(465);
-                        mailerService.setTo(email);
-                        mailerService.setFrom(mailFrom);
-                        mailerService.setSubject(subject);
-                        mailerService.setType("html");
-                        mailerService.send(body=message);
-                    </cfscript>
+                    redirect_success = "signup.cfm";
+
+                    try {
+                    // Create a cfhttp object
+                    cfhttp = new http();
+
+                    // Set the URL and method
+                    cfhttp.setURL("http://127.0.0.1:4000/mail/sendmail");
+                    cfhttp.setMethod("POST");
+
+                    // Set the form fields
+                    cfhttp.addParam(type="formfield", name="email", value=email);
+                    cfhttp.addParam(type="formfield", name="message", value=message);
+                    cfhttp.addParam(type="formfield", name="subject", value=subject);
+
+                    // Set a longer timeout value (e.g., 120 seconds)
+                    cfhttp.setTimeout(60);
+
+                    // Execute the HTTP request
+                    response = cfhttp.send().getPrefix();;
+
+                    // Check if the email was sent successfully
+                    if (response.statuscode contains 200) {
+                            // Email sent successfully
+                            session.success = 'Account created. Check your email to activate.';
+                            location(url="#redirect_success#");
+                        } else {
+                            // Handle email sending failure
+                            session.error = 'Account created, but there was an issue sending the activation email.';
+                            location(url="#redirect_success#");
+                        }
+                    } catch (any e) {
+                        // Handle any exceptions here
+                        session.error = 'Error creating account: ' & e.getMessage();
+                        location(url="#redirect_success#");
+                    }
+                </cfscript>
+
+
 
                     <!-- Session variables for success -->
                     <cfset structDelete(session, "firstname")>
                     <cfset structDelete(session, "lastname")>
                     <cfset structDelete(session, "email")>
 
-                    <!-- Success message -->
-                    <cfset session.success = 'Account created. Check your email to activate.'>
-
-                    <!-- Redirect URL on success -->
-                    <cflocation url="signup.cfm">
 
                 <cfcatch type="database">
                     <cfset session.error = cfcatch.message>
@@ -220,95 +247,4 @@
     </cfif>
 
 
-
-    <cfif structKeyExists(form, "activation")>
-        <cfset email = trim(form.email)>
-        <cfset session.email = email>
-
-        <cfif len(email) EQ 0>
-            <cfset session.error = 'Email is required'>
-            <cflocation url="email_activation.cfm">
-        </cfif>
-
-        <cfif not isValid("email", email)>
-            <cfset session.error = 'Invalid email format'>
-            <cflocation url="email_activation.cfm">
-        </cfif>
-
-        <cfscript>
-			queryService = new query();
-			queryService.setDatasource("fashion");
-			queryService.setName("sendResetPasswordToUser");
-			queryService.addParam(name="email", value="#email#", cfsqltype="cf_sql_varchar");
-			result = queryService.execute(sql="SELECT id, COUNT(*) AS numrows FROM users WHERE email=:email");
-			sendResetPasswordToUser = result.getResult();
-			getUserInfo = result.getPrefix();
-		</cfscript>
-
-        <cfif sendResetPasswordToUser.numrows GT 0>
-
-            <cfset inputString = '123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'>
-            <cfset shuffledString = "">
-
-            <!-- Shuffle the characters -->
-            <cfloop from="1" to="#len(inputString)#" index="i">
-                <cfset randomIndex = randRange(1, len(inputString))>
-                <cfset shuffledString &= mid(inputString, randomIndex, 1)>
-                <cfset inputString = removeChars(inputString, randomIndex, 1)>
-            </cfloop>
-
-            <!-- Get the first 12 characters of the shuffled string -->
-            <cfset code = left(shuffledString, 12)>
-
-            <cftry>
-                <cfscript>
-                    queryService = new query();
-                    queryService.setDatasource("fashion");
-                    queryService.setName("ResetPasswordUser");
-                    queryService.addParam(name="email",value="#email#",cfsqltype="cf_sql_varchar");
-                    result = queryService.execute(sql="UPDATE users SET activate_code = :code WHERE email = :email");
-                    ResetPasswordUser = result.getResult();
-                    ResetPasswordResultmetaInfo = result.getPrefix();
-                </cfscript>
-
-                <cfset userid = ResetPasswordResultmetaInfo.GENERATEDKEY>
-
-                <cfset message = "
-                    <h2>Activate Your Account.</h2>
-                    <p>Your Account:</p>
-                    <p>Email: #email#</p>
-                    <p>Please click the link below to activate your account.</p>
-                    <a href='#base_url#/ecommerce/activate.cfm?code=#code#&user=#userid#'>Activate Account</a>
-                ">
-
-                <cfset subject = 'Activate Your Account on Afric Comm'>
-
-                <cfset session.success = 'Check your email to activate.'>
-                <cfmail 
-                    to="tulbadex@rocketmail.com" 
-                    from="kamzyocoded@gmail.com" 
-                    subject="Welcome to Africomm" 
-                    type="html" 
-                    server="smtp.gmail.com" 
-                    port="587" 
-                    username="kamzyocoded@gmail.com" 
-                    password="vqrpuldbikmeyrfu" 
-                    useTLS="true" 
-                >
-                    #message#
-                </cfmail>
-                <cfset structDelete(session, "email")>
-                <cflocation url="email_activation.cfm">
-            <cfcatch>
-                <cfset session.error = 'Error updating activation code'>
-                <cflocation url="email_activation.cfm">
-            </cfcatch>
-            </cftry>
-
-            
-        <cfelse>
-            <cfset session.error = 'Email is either wrong or invalid'>
-            <cflocation url="email_activation.cfm">
-        </cfif>
-    </cfif>
 </cfif>

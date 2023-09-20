@@ -289,7 +289,7 @@ ul {
 
                                                                 <div class="form-group col-md-12 col-sm-12 co-xs-12">
                                                                     <button type="submit"
-                                                                        class="theme-btn btn-style-one">Send
+                                                                        class="theme-btn btn-style-one" name="contact-us">Send
                                                                         Now</button>
                                                                 </div>
                                                             </div>

@@ -15,7 +15,6 @@
     </div>
     </body>
 </cfoutput>
-Please ensure that you have the corresponding .cfm templates for header, navbar, and menubar. Also, replace #dsn# with your actual datasource name in case it's used in the session.cfm include file.
 
 
   <!-- Content Wrapper. Contains page content -->
@@ -61,7 +60,6 @@ Please ensure that you have the corresponding .cfm templates for header, navbar,
                                     <label>Category: </label>
                                     <select class="form-control input-sm" id="select_category">
                                         <option value="0">ALL</option>
-                                        <cfset conn = pdo.open()>
                                         <cfset stmt = conn.prepare("SELECT * FROM category")>
                                         <cfset stmt.execute()>
                                         <cfloop query="stmt">
@@ -85,7 +83,7 @@ Please ensure that you have the corresponding .cfm templates for header, navbar,
                                 <th>Tools</th>
                             </thead>
                             <tbody>
-                                <cfset conn = pdo.open()>
+                                
                                 <cftry>
                                     <cfset now = createDateTime(year(now()), month(now()), day(now()))>
                                     <cfset stmt = conn.prepare("SELECT * FROM products #where#")>
@@ -112,7 +110,6 @@ Please ensure that you have the corresponding .cfm templates for header, navbar,
                                         #e.getMessage()#
                                     </cfcatch>
                                 </cftry>
-                                <cfset pdo.close()>
                             </tbody>
                         </table>
                     </div>

@@ -1,10 +1,12 @@
-<?php include 'includes/session.php'; ?>
-<?php include 'includes/header.php'; ?>
+<cfinclude template="includes/session.cfm"> 
+<cfinclude template="includes/header.cfm">
 <body class="hold-transition skin-blue sidebar-mini">
 <div class="wrapper">
 
-  <?php include 'includes/navbar.php'; ?>
-  <?php include 'includes/menubar.php'; ?>
+
+<cfinclude template="includes/navbar.cfm"> 
+<cfinclude template="includes/menubar.cfm">
+
 
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
@@ -21,28 +23,23 @@
 
     <!-- Main content -->
     <section class="content">
-      <?php
-        if(isset($_SESSION['error'])){
-          echo "
-            <div class='alert alert-danger alert-dismissible'>
-              <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button>
-              <h4><i class='icon fa fa-warning'></i> Error!</h4>
-              ".$_SESSION['error']."
-            </div>
-          ";
-          unset($_SESSION['error']);
-        }
-        if(isset($_SESSION['success'])){
-          echo "
-            <div class='alert alert-success alert-dismissible'>
-              <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button>
-              <h4><i class='icon fa fa-check'></i> Success!</h4>
-              ".$_SESSION['success']."
-            </div>
-          ";
-          unset($_SESSION['success']);
-        }
-      ?>
+            <cfif IsDefined("session.error")>
+                <div class="alert alert-danger alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    <h4><i class="icon fa fa-warning"></i> Error!</h4>
+                    #session.error#
+                </div>
+                <cfset StructDelete(session, "error")>
+            </cfif>
+
+            <cfif IsDefined("session.success")>
+                <div class="alert alert-success alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    <h4><i class="icon fa fa-check"></i> Success!</h4>
+                    #session.success#
+                </div>
+                <cfset StructDelete(session, "success")>
+            </cfif>
       <div class="row">
         <div class="col-xs-12">
           <div class="box">
@@ -60,44 +57,38 @@
                   <th>Tools</th>
                 </thead>
                 <tbody>
-                  <?php
-                    $conn = $pdo->open();
+                    <cftry>
+                        <cfset stmt = conn.prepare("SELECT * FROM users WHERE type=:type")>
+                        <cfset stmt.execute({type: 0})>
 
-                    try{
-                      $stmt = $conn->prepare("SELECT * FROM users WHERE type=:type");
-                      $stmt->execute(['type'=>0]);
-                      foreach($stmt as $row){
-                        $image = (!empty($row['photo'])) ? '../images/'.$row['photo'] : '../images/profile.jpg';
-                        $status = ($row['status']) ? '<span class="label label-success">active</span>' : '<span class="label label-danger">not verified</span>';
-                        $active = (!$row['status']) ? '<span class="pull-right"><a href="#activate" class="status" data-toggle="modal" data-id="'.$row['id'].'"><i class="fa fa-check-square-o"></i></a></span>' : '';
-                        echo "
-                          <tr>
-                            <td>
-                              <img src='".$image."' height='30px' width='30px'>
-                              <span class='pull-right'><a href='#edit_photo' class='photo' data-toggle='modal' data-id='".$row['id']."'><i class='fa fa-edit'></i></a></span>
-                            </td>
-                            <td>".$row['email']."</td>
-                            <td>".$row['firstname'].' '.$row['lastname']."</td>
-                            <td>
-                              ".$status."
-                              ".$active."
-                            </td>
-                            <td>".date('M d, Y', strtotime($row['created_on']))."</td>
-                            <td>
-                              <a href='cart.php?user=".$row['id']."' class='btn btn-info btn-sm btn-flat'><i class='fa fa-search'></i> Cart</a>
-                              <button class='btn btn-success btn-sm edit btn-flat' data-id='".$row['id']."'><i class='fa fa-edit'></i> Edit</button>
-                              <button class='btn btn-danger btn-sm delete btn-flat' data-id='".$row['id']."'><i class='fa fa-trash'></i> Delete</button>
-                            </td>
-                          </tr>
-                        ";
-                      }
-                    }
-                    catch(PDOException $e){
-                      echo $e->getMessage();
-                    }
+                        <cfoutput query="stmt">
+                            <cfset image = (Len(photo) GT 0) ? '../images/#photo#' : '../images/profile.jpg'>
+                            <cfset status = (status) ? '<span class="label label-success">active</span>' : '<span class="label label-danger">not verified</span>'>
+                            <cfset active = (NOT status) ? '<span class="pull-right"><a href="#activate" class="status" data-toggle="modal" data-id="#id#"><i class="fa fa-check-square-o"></i></a></span>' : ''>
 
-                    $pdo->close();
-                  ?>
+                            <tr>
+                                <td>
+                                    <img src="#image#" height="30px" width="30px">
+                                    <span class="pull-right"><a href="#edit_photo" class="photo" data-toggle="modal" data-id="#id#"><i class="fa fa-edit"></i></a></span>
+                                </td>
+                                <td>#email#</td>
+                                <td>#firstname# #lastname#</td>
+                                <td>
+                                    #status#
+                                    #active#
+                                </td>
+                                <td>#DateFormat(created_on, 'MMM dd, yyyy')#</td>
+                                <td>
+                                    <a href="cart.cfm?user=#id#" class="btn btn-info btn-sm btn-flat"><i class="fa fa-search"></i> Cart</a>
+                                    <button class="btn btn-success btn-sm edit btn-flat" data-id="#id#"><i class="fa fa-edit"></i> Edit</button>
+                                    <button class="btn btn-danger btn-sm delete btn-flat" data-id="#id#"><i class="fa fa-trash"></i> Delete</button>
+                                </td>
+                            </tr>
+                        </cfoutput>
+                        <cfcatch type="any">
+                            <cfoutput>#cfcatch.message#</cfoutput>
+                        </cfcatch>
+                    </cftry>
                 </tbody>
               </table>
             </div>
@@ -107,13 +98,13 @@
     </section>
      
   </div>
-  	<?php include 'includes/footer.php'; ?>
-    <?php include 'includes/users_modal.php'; ?>
+
+  <cfinclude template="includes/footer.cfm"> 
+  <cfinclude template="includes/users_modal.cfm">
 
 </div>
 <!-- ./wrapper -->
-
-<?php include 'includes/scripts.php'; ?>
+<cfinclude template="includes/scripts.cfm">
 <script>
 $(function(){
 

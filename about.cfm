@@ -3,7 +3,7 @@
 
 <style>
 .about {
-    padding: 130px 0;
+    padding: 40px 0;
 }
 
 .about .heading h2 {
@@ -111,7 +111,7 @@
                                                         industry. We prioritize quality, functionality, and design to
                                                         ensure
                                                         that every item we offer meets the highest standards.</p>
-                                                    <p>Welcome to Afri Comm! We are dedicated to providing you with the
+                                                    <p>At Afri Comm! We are dedicated to providing you with the
                                                         latest and greatest gadgets and accessories to enhance your
                                                         digital
                                                         lifestyle.</p>

@@ -2,7 +2,9 @@
 <cfscript>
 	output = ''
 	if ( CGI.REQUEST_METHOD EQ "GET" ) {
-		if ( not structKeyExists(url, 'code') OR not not structKeyExists(url, 'user')) {
+		// writeDump(url)
+		// exit
+		if ( not structKeyExists(url, 'code') OR not structKeyExists(url, 'user')) {
 			output &= '
 				<div class="alert alert-danger">
 					<h4><i class="icon fa fa-warning"></i> Error!</h4>
@@ -43,7 +45,7 @@
 							output &= '
 								<div class="alert alert-success">
 									<h4><i class="icon fa fa-check"></i> Success!</h4>
-									Account activated - Email: <b>#row['email']#</b>.
+									Account activated - Email: <b>#activateAccountResult.email#</b>.
 								</div>
 								<h4>You may <a href="login.cfm">Login</a> or back to <a href="index.cfm">Homepage</a>.</h4>
 							';

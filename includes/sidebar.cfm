@@ -91,10 +91,10 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status) {
-                    alert(data.message);
+                    alert(data.MESSAGE);
                     return;
                 }
-                alert(data.message);
+                alert(data.MESSAGE);
                 return;
             })
             .catch(function(error) {

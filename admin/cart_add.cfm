@@ -1,3 +1,6 @@
+
+
+
 <cfinclude template="includes/session.cfm">
 
 <cfif structKeyExists(form, "add")>
@@ -5,9 +8,8 @@
     <cfset product = form.product>
     <cfset quantity = form.quantity>
 
-    <cfset conn = pdo.open()>
 
-    <cfquery name="checkProductQuery" datasource="#pdo.getDSN()#">
+    <cfquery name="checkProductQuery" datasource="fashion">
         SELECT *, COUNT(*) AS numrows FROM cart WHERE product_id=:id
     </cfquery>
     
@@ -17,7 +19,7 @@
         <cfset session.error = 'Product exist in cart'>
     <cfelse>
         <cftry>
-            <cfquery name="insertCartQuery" datasource="#pdo.getDSN()#">
+            <cfquery name="insertCartQuery" datasource="fashion">
                 INSERT INTO cart (user_id, product_id, quantity) VALUES (:user, :product, :quantity)
             </cfquery>
             <cfset session.success = 'Product added to cart'>
@@ -27,7 +29,6 @@
         </cftry>
     </cfif>
 
-    <cfset pdo.close()>
 
     <cflocation url="cart.cfm?user=#id#">
 </cfif>

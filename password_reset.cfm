@@ -4,6 +4,7 @@
     <cflocation url="index.cfm">
     <cfexit method = "exitTemplate">
 </cfif>
+
 <cfinclude template="includes/header.cfm">
 
 <body class="hold-transition login-page">
@@ -23,7 +24,7 @@
     	<p class="login-box-msg">Enter new password</p>
 
     	
-          <form action="password_new.cfm?code=#url.code#&user=#url.user#" method="post">
+          <form action="<cfoutput>password_new.cfm?code=#url.code#&user=#url.user#</cfoutput>" method="post">
       		<div class="form-group has-feedback">
         		<input type="password" class="form-control" name="password" placeholder="New password" required>
         		<span class="glyphicon glyphicon-lock form-control-feedback"></span>

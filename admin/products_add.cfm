@@ -1,56 +1,81 @@
-<cfinclude template="includes/session.cfm">
-<cfinclude template="includes/slugify.cfm">
+<cfscript>
+    include 'includes/session.cfm';
+    include 'includes/slugify.cfm';
 
-<cfif structKeyExists(form, "add")>
-	<cfset name = form.name>
-	<cfset slug = slugify(name)>
-	<cfset category = form.category>
-	<cfset price = form.price>
-	<cfset description = form.description>
-	<cfset filename = form.photo>
-	
-	<cfset conn = application.pdo.open()>
+    if (structKeyExists(form, "add")) {
+        // Get form data
+        name = form.name;
+        slug = slugify(name);
+        category = form.category;
+        price = form.price;
+        description = form.description;
+        filename = form.photo;
 
-	<cfquery name="stmt" datasource="#dsn#">
-		SELECT *, COUNT(*) AS numrows
-		FROM products
-		WHERE slug = <cfqueryparam value="#slug#" cfsqltype="cf_sql_varchar">
-	</cfquery>
-	<cfset row = stmt[1]>
+        // Check if the product already exists
+        queryService = new query();
+        queryService.setDatasource("fashion");
+        sqlCheckProduct = "
+            SELECT *, COUNT(*) AS numrows
+            FROM products
+            WHERE slug = :slug
+        ";
+        queryService.addParam(name="slug", value=slug, cfsqltype="cf_sql_varchar");
+        result = queryService.execute(sql=sqlCheckProduct);
+        row = result.getResult()[1];
 
-	<cfif row.numrows GT 0>
-		<cfset session.error = "Product already exist">
-	<cfelse>
-		<cfif not len(trim(filename))>
-			<cfset new_filename = "">
-		<cfelse>
-			<cfset ext = listLast(filename, ".")>
-			<cfset new_filename = slug & "." & ext>
-			<cffile action="upload" fileField="photo" destination="../images/" nameConflict="makeUnique">
-		</cfif>
+        if (row.numrows GT 0) {
+            session.error = "Product already exists";
+        } else {
+            if (len(trim(filename)) EQ 0) {
+                new_filename = "";
+            } else {
+                ext = listLast(filename, ".");
+                new_filename = slug & "." & ext;
+                fileResult = fileUpload(destination="../images/", fileField="photo", nameConflict="makeUnique");
+                if (fileResult.STATUS EQ "OK") {
+                    new_filename = fileResult.SERVERFILE;
+                }
+            }
 
-		<cftry>
-			<cfquery name="stmt" datasource="#dsn#">
-				INSERT INTO products (category_id, name, description, slug, price, photo)
-				VALUES (
-					<cfqueryparam value="#category#" cfsqltype="cf_sql_integer">,
-					<cfqueryparam value="#name#" cfsqltype="cf_sql_varchar">,
-					<cfqueryparam value="#description#" cfsqltype="cf_sql_varchar">,
-					<cfqueryparam value="#slug#" cfsqltype="cf_sql_varchar">,
-					<cfqueryparam value="#price#" cfsqltype="cf_sql_decimal">,
-					<cfqueryparam value="#new_filename#" cfsqltype="cf_sql_varchar">
-				)
-			</cfquery>
-			<cfset session.success = "User added successfully">
-			<cfcatch type="any">
-				<cfset session.error = cfcatch.message>
-			</cfcatch>
-		</cftry>
-	</cfif>
-	
-	<cfset application.pdo.close()>
-<cfelse>
-	<cfset session.error = "Fill up product form first">
-</cfif>
+            try {
+                queryService = new query();
+                queryService.setDatasource("fashion");
+                sqlInsertProduct = "
+                    INSERT INTO products (category_id, name, description, slug, price, photo)
+                    VALUES (
+                        :category,
+                        :name,
+                        :description,
+                        :slug,
+                        :price,
+                        :new_filename
+                    )
+                ";
+                queryService.addParam(name="category", value=category, cfsqltype="cf_sql_integer");
+                queryService.addParam(name="name", value=name, cfsqltype="cf_sql_varchar");
+                queryService.addParam(name="description", value=description, cfsqltype="cf_sql_varchar");
+                queryService.addParam(name="slug", value=slug, cfsqltype="cf_sql_varchar");
+                queryService.addParam(name="price", value=price, cfsqltype="cf_sql_decimal");
+                queryService.addParam(name="new_filename", value=new_filename, cfsqltype="cf_sql_varchar");
+                queryService.execute(sql=sqlInsertProduct);
+                session.success = "Product added successfully";
+            } catch (any e) {
+                session.error = e.message;
+            }
+        }
+    } else {
+        session.error = "Fill up the product form first";
+    }
 
-<cflocation url="products.cfm">
+    location(url="products.cfm");
+</cfscript>
+
+
+
+
+
+
+
+
+
+

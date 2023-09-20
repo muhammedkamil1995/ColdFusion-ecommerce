@@ -1,3 +1,51 @@
+<cfscript>
+    include 'includes/session.cfm';
+
+    if (structKeyExists(form, "upload")) {
+        id = form.id;
+        filename = form.photo.name;
+
+        // Check if a file was uploaded
+        if (len(filename) > 0) {
+            destinationFolder = expandPath("../images/");
+            fileUpload(destinationFolder, "photo", "auto");
+            fullFilePath = destinationFolder & filename;
+        } else {
+            fullFilePath = ""; // No file uploaded
+        }
+
+        try {
+            queryService = new QueryExecute();
+            sql = "UPDATE users SET photo = :photo WHERE id = :id";
+
+            // Define the SQL parameters
+            params = {
+                id: { value: id, cfsqltype: "cf_sql_integer" },
+                photo: { value: filename, cfsqltype: "cf_sql_varchar" }
+            };
+
+            result = queryService.execute(sql, params);
+
+            if (result.recordCount > 0) {
+                session.success = 'User photo updated successfully';
+            } else {
+                session.error = 'Failed to update user photo';
+            }
+        } catch (any e) {
+            // Handle exceptions
+            session.error = "An error occurred: " & e.getMessage();
+        }
+    } else {
+        session.error = 'Select user to update photo first';
+    }
+
+    // Redirect to the users.php page
+    location("users.cfm");
+</cfscript>
+
+
+
+
 <?php
 	include 'includes/session.php';
 

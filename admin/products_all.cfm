@@ -1,17 +1,21 @@
-<cfinclude template="includes/session.cfm">
+<cfscript>
+    include 'includes/session.cfm';
 
-<cfset output = "">
+    output = [];
+    queryService = new query();
+    queryService.setDatasource("fashion");
+    queryService.setName("stmt");
+    queryService.setSql("SELECT * FROM products");
+    result = queryService.execute();
 
-<cfset conn = application.pdo.open()>
+    for (row in result.getResult()) {
+        arrayAppend(output, {
+            "value": row.id,
+            "class": "append_items",
+            "name": row.name
+        });
+    }
 
-<cfquery name="stmt" datasource="#dsn#">
-	SELECT * FROM products
-</cfquery>
+    WriteOutput(serializeJSON(output));
+</cfscript>
 
-<cfloop query="stmt">
-	<cfset output &= "<option value='#id#' class='append_items'>#name#</option>">
-</cfloop>
-
-<cfset application.pdo.close()>
-
-<cfoutput>#serializeJSON(output)#</cfoutput>

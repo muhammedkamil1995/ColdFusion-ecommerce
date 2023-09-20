@@ -7,7 +7,7 @@
 
     <cfset contents = "">
     
-    <cfquery name="salesQuery" datasource="#application.dsn#">
+    <cfquery name="salesQuery" datasource="fashion">
         SELECT sales.*, users.firstname, users.lastname
         FROM sales
         LEFT JOIN users ON users.id = sales.user_id
@@ -19,7 +19,7 @@
     <cfset total = 0>
     
     <cfloop query="salesQuery">
-        <cfquery name="detailsQuery" datasource="#application.dsn#">
+        <cfquery name="detailsQuery" datasource="fashion">
             SELECT details.*, products.price
             FROM details
             LEFT JOIN products ON products.id = details.product_id
@@ -62,7 +62,7 @@
     <cfset from_title = dateFormat(from, "MMM dd, yyyy")>
     <cfset to_title = dateFormat(to, "MMM dd, yyyy")>
 
-    <cfquery name="salesConn" datasource="#application.dsn#">
+    <cfquery name="salesConn" datasource="fashion">
         SELECT sales.*, users.firstname, users.lastname
         FROM sales
         LEFT JOIN users ON users.id = sales.user_id
