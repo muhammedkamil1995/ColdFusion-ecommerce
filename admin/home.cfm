@@ -1,8 +1,8 @@
 <cfinclude template="includes/session.cfm">
-<cfinclude template="includes/format.cfm">
 
-<cfset today = dateFormat(now(), "yyyy-mm-dd")>
-<cfset year = year(now())>
+<cfset today = LSDateFormat(now(), 'yyyy-mm-dd')>
+<cfset year = DateFormat(now(), 'yyyy')>
+
 <cfif structKeyExists(url, "year")>
   <cfset year = url.year>
 </cfif>
@@ -23,7 +23,7 @@
         Dashboard
       </h1>
       <ol class="breadcrumb">
-        <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li><a href="##"><i class="fa fa-dashboard"></i> Home</a></li>
         <li class="active">Dashboard</li>
       </ol>
     </section>
@@ -34,14 +34,16 @@
     <div class="alert alert-danger alert-dismissible">
       <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
       <h4><i class="icon fa fa-warning"></i> Error!</h4>
-      #session.error#
+      <cfoutput>#session.error#</cfoutput>
+      <cfset structDelete(session, "error")>
     </div>
   </cfif>
   <cfif structKeyExists(session, "success")>
     <div class="alert alert-success alert-dismissible">
       <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
       <h4><i class="icon fa fa-check"></i> Success!</h4>
-      #session.success#
+      <cfoutput>#session.success#</cfoutput>
+      <cfset structDelete(session, "success")>
     </div>
   </cfif>
   
@@ -51,17 +53,15 @@
       <!-- small box -->
       <div class="small-box bg-aqua">
         <div class="inner">
-          <cfquery name="stmt" datasource="fashion">
-            SELECT details.price, details.quantity
-            FROM details
-            LEFT JOIN products ON products.id=details.product_id
+          <cfquery name="productDetails" datasource="fashion">
+            SELECT * FROM details LEFT JOIN products ON products.id=details.product_id
           </cfquery>
           <cfset total = 0>
-          <cfloop query="stmt">
-            <cfset subtotal = stmt.price * stmt.quantity>
+          <cfloop query="productDetails">
+            <cfset subtotal = productDetails.price * productDetails.quantity>
             <cfset total += subtotal>
           </cfloop>
-          <h3>&#36; #numberFormat(total, "9.99")#</h3>
+          <cfoutput><h3>&##36; #numberFormat(total, "9.99")#</h3></cfoutput>
         </div>
         <div class="icon">
           <i class="fa fa-shopping-cart"></i>
@@ -74,12 +74,11 @@
       <!-- small box -->
       <div class="small-box bg-green">
         <div class="inner">
-          <cfquery name="stmt" datasource="fashion">
+          <cfquery name="products" datasource="fashion">
             SELECT COUNT(*) AS numrows
             FROM products
           </cfquery>
-          <cfset prow = stmt.fetchRow()>
-          <h3>#prow.numrows#</h3>
+          <cfoutput><h3>#products.numrows#</h3></cfoutput>
         </div>
         <div class="icon">
           <i class="fa fa-barcode"></i>
@@ -92,12 +91,11 @@
       <!-- small box -->
       <div class="small-box bg-yellow">
         <div class="inner">
-          <cfquery name="stmt" datasource="fashion">
+          <cfquery name="users" datasource="fashion">
             SELECT COUNT(*) AS numrows
             FROM users
           </cfquery>
-          <cfset urow = stmt.fetchRow()>
-          <h3>#urow.numrows#</h3>
+          <cfoutput><h3>#users.numrows#</h3></cfoutput>
         </div>
         <div class="icon">
           <i class="fa fa-users"></i>
@@ -110,19 +108,20 @@
       <!-- small box -->
       <div class="small-box bg-red">
         <div class="inner">
-          <cfquery name="stmt" datasource="fashion">
-            SELECT details.price, details.quantity
-            FROM details
-            LEFT JOIN sales ON sales.id=details.sales_id
-            LEFT JOIN products ON products.id=details.product_id
+          <cfquery name="details" datasource="fashion">
+            SELECT * FROM details 
+            LEFT JOIN sales 
+            ON sales.id=details.sales_id 
+            LEFT JOIN products 
+            ON products.id=details.product_id 
             WHERE sales_date = <cfqueryparam value="#today#" cfsqltype="cf_sql_date">
           </cfquery>
           <cfset total = 0>
-          <cfloop query="stmt">
-            <cfset subtotal = stmt.price * stmt.quantity>
+          <cfloop query="details">
+            <cfset subtotal = product.price * product.quantity>
             <cfset total += subtotal>
           </cfloop>
-          <h3>&#36; #numberFormat(total, "9.99")#</h3>
+          <cfoutput><h3>&##36; #numberFormat(total, "9.99")#</h3></cfoutput>
         </div>
         <div class="icon">
           <i class="fa fa-money"></i>
@@ -145,7 +144,7 @@
                 <select class="form-control input-sm" id="select_year">
                   <cfloop from="2015" to="2065" index="i">
                     <cfset selected = (i eq year) ? "selected" : "">
-                    <option value="#i#" #selected#>#i#</option>
+                    <cfoutput><option value="#i#" #selected#>#i#</option></cfoutput>
                   </cfloop>
                 </select>
               </div>
@@ -172,38 +171,51 @@
 <!-- ./wrapper -->
 
 <!-- Chart Data -->
-<!-- Chart Data -->
-<cfset months = []>
-<cfset sales = []>
-<cfloop from="1" to="12" index="m">
-  <cftry>
-    <cfquery name="stmt" datasource="fashion">
-      SELECT details.price, details.quantity
-      FROM details
-      LEFT JOIN sales ON sales.id=details.sales_id
-      LEFT JOIN products ON products.id=details.product_id
-      WHERE MONTH(sales_date) = <cfqueryparam value="#m#" cfsqltype="cf_sql_integer">
-      AND YEAR(sales_date) = <cfqueryparam value="#year#" cfsqltype="cf_sql_integer">
-    </cfquery>
-    <cfset total = 0>
-    <cfloop query="stmt">
-      <cfset subtotal = stmt.price * stmt.quantity>
-      <cfset total += subtotal>
-    </cfloop>
-    <cfset sales.add(round(total, 2))>
-    <cfcatch type="any">
-      <!-- Handle the exception here, e.g., echo the error message -->
-      <cfoutput>#cfcatch.message#</cfoutput>
-    </cfcatch>
-  </cftry>
+<cfscript>
+    months = [];
+    sales = [];
 
-  <cfset num = repeatString("0", 2 - len(m)) & m>
-  <cfset month = dateFormat(createDateTime(0, 0, 0, m, 1), "MMM")>
-  <cfset arrayAppend(months, month)>
-</cfloop>
+    for (m = 1; m <= 12; m++) {
+        try {
+            // Calculate the month and year
+            currentYear = Year(now());
+            monthDate = createDate(currentYear, m, 1);
+            startDate = dateAdd('m', -1, monthDate);
+            endDate = dateAdd('d', -1, dateAdd('m', 1, monthDate));
 
-<cfset monthsJSON = serializeJSON(months)>
-<cfset salesJSON = serializeJSON(sales)>
+            // Query the database
+            queryService = queryExecute(
+                "SELECT SUM(price * quantity) AS total
+                 FROM details
+                 LEFT JOIN sales ON sales.id = details.sales_id
+                 LEFT JOIN products ON products.id = details.product_id
+                 WHERE sales_date >= :startDate AND sales_date <= :endDate",
+                {
+                    startDate: startDate,
+                    endDate: endDate
+                },
+                {datasource: 'fashion'}
+            );
+
+            // Get the total sales for the month
+            total = queryResult.total ?: 0;
+            total = numberFormat(total, '9.99'); // Round to two decimal places
+            arrayAppend(sales, total);
+
+        } catch (any e) {
+            // Handle any exceptions here
+            writeOutput(e.getMessage());
+        }
+
+        // Format month names
+        monthName = monthAsString(m);
+        arrayAppend(months, monthName);
+    }
+
+    // Convert arrays to JSON
+    monthsJSON = serializeJSON(months);
+    salesJSON = serializeJSON(sales);
+</cfscript>
 
 
 

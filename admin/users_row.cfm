@@ -22,7 +22,7 @@ if (structKeyExists(form, "id")) {
     } catch (any e) {
         writeOutput('{"error": "' & e.message & '"}');
     }
-}
+
 </cfscript>
 
 

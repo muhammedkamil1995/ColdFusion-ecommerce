@@ -2,8 +2,8 @@
     <cfargument name="n" type="numeric" required="true">
     <cfargument name="precision" type="numeric" default="1">
     
-    <cfset var n_format = "">
-    <cfset var suffix = "">
+    <cfset n_format = "">
+    <cfset suffix = "">
     
     <cfif arguments.n < 900>
         <!--- 0 - 900 --->

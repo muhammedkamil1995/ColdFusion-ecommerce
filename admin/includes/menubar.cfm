@@ -2,13 +2,15 @@
   <aside class="main-sidebar">
     <!-- sidebar: style can be found in sidebar.less -->
     <section class="sidebar">
+
+    <cfset image = (len(trim(getAdminresult.photo)) GT 0) ? '../images/' & getAdminresult.photo : '../images/profile.jpg'>
       <!-- Sidebar user panel -->
       <div class="user-panel">
         <div class="pull-left image">
-          <img src="#(NOT Empty(admin['photo']) ? '../images/' & admin['photo'] : '../images/profile.jpg')#" class="img-circle" alt="User Image">
+          <cfoutput><img src="#image#">
         </div>
         <div class="pull-left info">
-          <p>#admin['firstname']# #admin['lastname']#</p>
+          <p>#getAdminresult.firstname# #getAdminresult.lastname#</p></cfoutput>
           <a><i class="fa fa-circle text-success"></i> Online</a>
         </div>
       </div>
@@ -20,7 +22,7 @@
         <li class="header">MANAGE</li>
         <li><a href="users.cfm"><i class="fa fa-users"></i> <span>Users</span></a></li>
         <li class="treeview">
-          <a href="#">
+          <a href="##">
             <i class="fa fa-barcode"></i>
             <span>Products</span>
             <span class="pull-right-container">

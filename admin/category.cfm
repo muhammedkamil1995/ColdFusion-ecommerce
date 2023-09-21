@@ -2,7 +2,6 @@
 <cfinclude template="includes/header.cfm">
 <cfset categories = []>
 
-<cfset conn = pdo.open()>
 <cfquery name="getCategories" datasource="#dsn#">
     SELECT * FROM category
 </cfquery>
@@ -14,7 +13,6 @@
     }>
     <cfset arrayAppend(categories, category)>
 </cfloop>
-<cfset pdo.close()>
 
 <body class="hold-transition skin-blue sidebar-mini">
 <div class="wrapper">

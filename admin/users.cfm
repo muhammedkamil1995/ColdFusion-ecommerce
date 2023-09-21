@@ -27,7 +27,8 @@
                 <div class="alert alert-danger alert-dismissible">
                     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                     <h4><i class="icon fa fa-warning"></i> Error!</h4>
-                    #session.error#
+                    <cfoutput>#session.error#</cfoutput>
+                    
                 </div>
                 <cfset StructDelete(session, "error")>
             </cfif>
@@ -36,7 +37,7 @@
                 <div class="alert alert-success alert-dismissible">
                     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                     <h4><i class="icon fa fa-check"></i> Success!</h4>
-                    #session.success#
+                    <cfoutput>#session.success#</cfoutput>
                 </div>
                 <cfset StructDelete(session, "success")>
             </cfif>
@@ -57,38 +58,41 @@
                   <th>Tools</th>
                 </thead>
                 <tbody>
-                    <cftry>
-                        <cfset stmt = conn.prepare("SELECT * FROM users WHERE type=:type")>
-                        <cfset stmt.execute({type: 0})>
+                  <cftry>
+                    <cfquery name="users" datasource="fashion" RETURNTYPE="array">
+                        SELECT * FROM users WHERE type=0
+                    </cfquery>
 
-                        <cfoutput query="stmt">
-                            <cfset image = (Len(photo) GT 0) ? '../images/#photo#' : '../images/profile.jpg'>
-                            <cfset status = (status) ? '<span class="label label-success">active</span>' : '<span class="label label-danger">not verified</span>'>
-                            <cfset active = (NOT status) ? '<span class="pull-right"><a href="#activate" class="status" data-toggle="modal" data-id="#id#"><i class="fa fa-check-square-o"></i></a></span>' : ''>
+                      <cfloop array="#users#" index="user">
+                        <cfoutput>
+                        <cfset status = (user.status) ? '<span class="label label-success">active</span>' : '<span class="label label-danger">not verified</span>'>
+                        <cfset active = (user.status) ? '' : '<span class="pull-right"><a href="##activate" class="status" data-toggle="modal" data-id="#user.id#"><i class="fa fa-check-square-o"></i></a></span>'>
 
-                            <tr>
-                                <td>
-                                    <img src="#image#" height="30px" width="30px">
-                                    <span class="pull-right"><a href="#edit_photo" class="photo" data-toggle="modal" data-id="#id#"><i class="fa fa-edit"></i></a></span>
-                                </td>
-                                <td>#email#</td>
-                                <td>#firstname# #lastname#</td>
-                                <td>
-                                    #status#
-                                    #active#
-                                </td>
-                                <td>#DateFormat(created_on, 'MMM dd, yyyy')#</td>
-                                <td>
-                                    <a href="cart.cfm?user=#id#" class="btn btn-info btn-sm btn-flat"><i class="fa fa-search"></i> Cart</a>
-                                    <button class="btn btn-success btn-sm edit btn-flat" data-id="#id#"><i class="fa fa-edit"></i> Edit</button>
-                                    <button class="btn btn-danger btn-sm delete btn-flat" data-id="#id#"><i class="fa fa-trash"></i> Delete</button>
-                                </td>
-                            </tr>
+                        <tr>
+                            <td>
+                              <cfset userImage = (isDefined("user.photo") and len(trim(user.photo)) GT 0) ? '../images/' & user.photo : '../images/profile.jpg'>
+                              <img src="#userImage#" height="30px" width="30px">
+                              <span class="pull-right"><a href="##edit_photo" class="photo" data-toggle="modal" data-id="#user.id#"><i class="fa fa-edit"></i></a></span>
+                            </td>
+                            <td>#user.email#</td>
+                            <td>#user.firstname# #user.lastname#</td>
+                            <td>
+                                #status#
+                                #active#
+                            </td>
+                            <td>#DateFormat(user.created_on, 'MMM dd, yyyy')#</td>
+                            <td>
+                                <a href="cart.cfm?user=#user.id#" class="btn btn-info btn-sm btn-flat"><i class="fa fa-search"></i> Cart</a>
+                                <button class="btn btn-success btn-sm edit btn-flat" data-id="#user.id#"><i class="fa fa-edit"></i> Edit</button>
+                                <button class="btn btn-danger btn-sm delete btn-flat" data-id="#user.id#"><i class="fa fa-trash"></i> Delete</button>
+                            </td>
+                        </tr>
                         </cfoutput>
-                        <cfcatch type="any">
-                            <cfoutput>#cfcatch.message#</cfoutput>
-                        </cfcatch>
-                    </cftry>
+                      </cfloop>
+                      <cfcatch type="any">
+                          <cfoutput>#cfcatch.message#</cfoutput>
+                      </cfcatch>
+                  </cftry>
                 </tbody>
               </table>
             </div>
