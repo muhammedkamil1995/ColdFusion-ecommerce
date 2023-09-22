@@ -2,7 +2,7 @@
 <cfinclude template="includes/header.cfm">
 <cfset categories = []>
 
-<cfquery name="getCategories" datasource="#dsn#">
+<cfquery name="getCategories" datasource="fashion">
     SELECT * FROM category
 </cfquery>
 
@@ -37,7 +37,7 @@
         <div class="alert alert-danger alert-dismissible">
           <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
           <h4><i class="icon fa fa-warning"></i> Error!</h4>
-          #session.error#
+          <cfoutput>#session.error#</cfoutput>
         </div>
         <cfset structDelete(session, "error")>
       </cfif>
@@ -45,7 +45,7 @@
         <div class="alert alert-success alert-dismissible">
           <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
           <h4><i class="icon fa fa-check"></i> Success!</h4>
-          #session.success#
+          <cfoutput>#session.success#</cfoutput>
         </div>
         <cfset structDelete(session, "success")>
       </cfif>
@@ -65,7 +65,7 @@
                 <tbody>
                   <cfloop array="#categories#" index="category">
                     <tr>
-                      <td>#category.name#</td>
+                      <cfoutput><td>#category.name#</td></cfoutput>
                       <td>
                         <button class="btn btn-success btn-sm edit btn-flat" data-id="#category.id#"><i class="fa fa-edit"></i> Edit</button>
                         <button class="btn btn-danger btn-sm delete btn-flat" data-id="#category.id#"><i class="fa fa-trash"></i> Delete</button>
