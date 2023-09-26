@@ -62,7 +62,6 @@
                         <div class="pull-right">
                             <form class="form-inline">
                                 <div class="form-group">
-                                  <cfoutput>#catid#</cfoutput>
                                     <label>Category: </label>
                                     <select class="form-control input-sm" id="select_category">
                                         <option value="0">ALL</option>
