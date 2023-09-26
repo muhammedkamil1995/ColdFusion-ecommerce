@@ -14,7 +14,7 @@
         SELECT *, COUNT(*) AS numrows FROM products WHERE slug = <cfqueryparam cfsqltype="cf_sql_varchar" value="#slug#">
     </cfquery>
     
-    <cfset row = Products.getResult()>
+    <cfset row = Products>
 
     <cfif row.numrows GT 0>
         <cfset session.error = 'Product already exists'>

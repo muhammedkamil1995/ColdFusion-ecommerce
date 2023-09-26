@@ -1,4 +1,5 @@
 <cfinclude template="includes/session.cfm">
+<cfinclude template="includes/slugify.cfm">
 
 <cfif structKeyExists(form, "edit")>
     <cfset id = form.id>
