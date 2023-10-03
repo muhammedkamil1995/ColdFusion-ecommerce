@@ -16,7 +16,7 @@
         Users
       </h1>
       <ol class="breadcrumb">
-        <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li><a href="##"><i class="fa fa-dashboard"></i> Home</a></li>
         <li class="active">Users</li>
       </ol>
     </section>
@@ -45,7 +45,7 @@
         <div class="col-xs-12">
           <div class="box">
             <div class="box-header with-border">
-              <a href="#addnew" data-toggle="modal" class="btn btn-primary btn-sm btn-flat"><i class="fa fa-plus"></i> New</a>
+              <a href="##addnew" data-toggle="modal" class="btn btn-primary btn-sm btn-flat"><i class="fa fa-plus"></i> New</a>
             </div>
             <div class="box-body">
               <table id="example1" class="table table-bordered">
@@ -143,18 +143,18 @@ $(function(){
 function getRow(id){
   $.ajax({
     type: 'POST',
-    url: 'users_row.php',
+    url: 'users_row.cfm',
     data: {id:id},
     dataType: 'json',
     success: function(response){
-      $('.userid').val(response.id);
-      $('#edit_email').val(response.email);
+      $('.userid').val(response.ID);
+      $('#edit_email').val(response.EMAIL);
       $('#edit_password').val(response.password);
-      $('#edit_firstname').val(response.firstname);
-      $('#edit_lastname').val(response.lastname);
-      $('#edit_address').val(response.address);
-      $('#edit_contact').val(response.contact_info);
-      $('.fullname').html(response.firstname+' '+response.lastname);
+      $('#edit_firstname').val(response.FIRSTNAME);
+      $('#edit_lastname').val(response.LASTNAME);
+      $('#edit_address').val(response.ADDRESS);
+      $('#edit_contact').val(response.CONTACT_INFO);
+      $('.fullname').html(response.FIRSTNAME+' '+response.LASTNAME);
     }
   });
 }

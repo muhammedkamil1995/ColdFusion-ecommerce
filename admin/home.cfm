@@ -227,7 +227,7 @@ $(function(){
   var barChartCanvas = $('#barChart').get(0).getContext('2d')
   var barChart = new Chart(barChartCanvas)
   var barChartData = {
-    labels  : <?php echo $months; ?>,
+    labels  : <cfoutput>#months#</cfoutput>,
     datasets: [
       {
         label               : 'SALES',
@@ -237,7 +237,7 @@ $(function(){
         pointStrokeColor    : 'rgba(60,141,188,1)',
         pointHighlightFill  : '#fff',
         pointHighlightStroke: 'rgba(60,141,188,1)',
-        data                : <?php echo $sales; ?>
+        data                : <cfoutput>#sales#</cfoutput>
       }
     ]
   }

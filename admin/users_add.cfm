@@ -1,137 +1,108 @@
-<cfscript>
-    include 'includes/session.cfm';
+<cfinclude template="includes/session.cfm"> 
+<cfparam name="form.add" default="">
+<cfif structKeyExists(form, "add")>
+    <cfset firstname = form.firstname>
+    <cfset lastname = form.lastname>
+    <cfset email = form.email>
+    <cfset password = form.password>
+    <cfset address = form.address>
+    <cfset contact = form.contact>
 
-    if (structKeyExists(form, "add")) {
-        firstname = form.firstname;
-        lastname = form.lastname;
-        email = form.email;
-        password = form.password;
-        address = form.address;
-        contact = form.contact;
+    <cfquery name="getUsers" datasource="fashion">
+        SELECT COUNT(*) AS numrows
+        FROM users
+        WHERE email = <cfqueryparam cfsqltype="cf_sql_varchar" value="#email#">
+    </cfquery>
 
-        try {
-            // Define the SQL statement to check if the email is already taken
-            emailCheckSQL = "SELECT COUNT(*) AS numrows FROM users WHERE email = :email";
+    <cfif getUsers.numrows gt 0>
+        <cfset session.error = 'Email already taken'>
+    <cfelse>
+        <cfscript> 
+            options = StructNew() 
+            options.rounds = 4 
+            options.version = "$2a" 
+        </cfscript>
+        <cfset hashPassword = GenerateBCryptHash(password, options)>
+        <cfset filename = form.photo>
+        <cfset now = dateFormat(now(), "yyyy-mm-dd")>
 
-            // Define query parameters for email check
-            emailCheckParams = {
-                email: { value: email, cfsqltype: "CF_SQL_VARCHAR" }
-            };
+        <cfif isDefined("form.photo") and len(trim(form.photo)) gt 0 and structKeyExists(form, "photo") && len(trim(form.photo))>
+            <cfset filename = expandpath('../images/')>
 
-            // Execute the email check using queryService
-            emailCheckQuery = queryService.execute(
-                sql = emailCheckSQL,
-                params = emailCheckParams,
-                datasource = "fashion"
-            );
-            emailCheckResult = emailCheckQuery.getResult();
+            <cftry>
+                <cffile action="upload" filefield="form.photo" destination="#filename#" 
+                nameconflict="MAKEUNIQUE" accept="image/jpg,image/jpeg,image/png,image/gif" 
+                allowedExtensions=".png,.jpg,.jpeg,.gif" result="upload">
+            <cfcatch type="any">
+                <cfif FindNoCase( "No data was received in the uploaded", cfcatch.message )>
+                    <cfset session.error = "Zero length file">
 
-            if (emailCheckResult.numrows > 0) {
-                session.error = 'Email already taken';
-            } else {
-            
-                hashedPassword = hash(password, "SHA-256");
+                <!--- prevent invalid file types --->
+                <cfelseif FindNoCase( "The MIME type or the Extension of the uploaded file", cfcatch.message )>
+                    <cfset session.error = "Invalid file type">
 
-                filename = form.photo;
-                now = createDateTimeFormat("yyyy-mm-dd", now());
+                <!--- prevent empty form field --->
+                <cfelseif FindNoCase( "did not contain a file.", cfcatch.message )>
+                    <cfset session.error = "Empty form field">
 
-                if (len(filename)) {
-                    // Upload the photo if provided
-                    fileUploadDest = expandPath("../images/") & filename;
-                    fileUploadResult = fileUpload("photo", fileUploadDest);
-                }
+                <!---all other errors --->
+                <cfelse>
+                    <cfset session.error = "Unhandled File Upload Error">
 
-                // Define the SQL statement to insert a new user
-                insertSQL = "INSERT INTO users (email, password, firstname, lastname, address, contact_info, photo, status, created_on) 
-                            VALUES (:email, :password, :firstname, :lastname, :address, :contact, :photo, :status, :created_on)";
+                </cfif>
+            </cfcatch>
+            </cftry>
 
-                // Define query parameters for user insertion
-                insertParams = {
-                    email: { value: email, cfsqltype: "CF_SQL_VARCHAR" },
-                    password: { value: hashedPassword, cfsqltype: "CF_SQL_VARCHAR" },
-                    firstname: { value: firstname, cfsqltype: "CF_SQL_VARCHAR" },
-                    lastname: { value: lastname, cfsqltype: "CF_SQL_VARCHAR" },
-                    address: { value: address, cfsqltype: "CF_SQL_VARCHAR" },
-                    contact: { value: contact, cfsqltype: "CF_SQL_VARCHAR" },
-                    photo: { value: filename, cfsqltype: "CF_SQL_VARCHAR" },
-                    status: { value: 1, cfsqltype: "CF_SQL_INTEGER" },
-                    created_on: { value: now, cfsqltype: "CF_SQL_DATE" }
-                };
+            <cfif isDefined("upload") and not listFindNoCase("jpg,jpeg,png,gif", upload.serverFileExt)>
+                <cffile action="delete" file="#upload.ServerDirectory#/#upload.ServerFile#" >
+                <cfset session.error = "Invalid file type (checked)">
+            </cfif>
 
-                // Execute the user insertion using queryService
-                queryService.execute(
-                    sql = insertSQL,
-                    params = insertParams,
-                    datasource = "fashion" // Replace with your actual datasource name
-                );
+            <!-- Check the file size (not more than 5MB) -->
+            <cfif isDefined("upload") and upload.fileWasSaved>
+                <cfset newFileName = createUUID() & "." & upload.SERVERFILEEXT>
+                <cfset renameFile = upload.SERVERDIRECTORY & "\" & newFileName>
+                <cfset uploadFile = upload.SERVERDIRECTORY & "\" & upload.SERVERFILE>
+                <cfif not isImageFile(uploadFile)>
+                    <cfset session.error = "Please include a VALID picture">
+                    <cffile action="delete" file="#uploadFile#"> 
+                <cfelseif upload.filesize gt 5000000 >
+                    <cfset session.error = "Your image cannot be larger than 5MB!">
+                <cfelse>
+                    <cffile action="rename" source="#uploadFile#" destination="#renameFile#" attributes="normal" result="rename">
+                </cfif>
+            </cfif>
+        </cfif>
 
-                session.success = 'User added successfully';
-            }
-        } catch (any e) {
-            session.error = e.message;
-        }
-    } else {
-        session.error = 'Fill up user form first';
-    }
+        <cfif not isDefined("newFileName")>
+            <cfset uploadFile = ''>
+        <cfelse>
+            <cfset uploadFile = newFileName>
+        </cfif>
 
-    location("users.cfm");
-</cfscript>
+        <cftry>
+            <cfif not structKeyExists(session, 'error') >
+                <cfquery name="addUser" datasource="fashion">
+                    INSERT INTO users (email, password, firstname, lastname, address, contact_info, photo, status, created_on)
+                    VALUES (
+                        <cfqueryparam cfsqltype="cf_sql_varchar" value="#email#">,
+                        <cfqueryparam cfsqltype="cf_sql_varchar" value="#hashPassword#">,
+                        <cfqueryparam cfsqltype="cf_sql_varchar" value="#firstname#">,
+                        <cfqueryparam cfsqltype="cf_sql_varchar" value="#lastname#">,
+                        <cfqueryparam cfsqltype="cf_sql_varchar" value="#address#">,
+                        <cfqueryparam cfsqltype="cf_sql_varchar" value="#contact#">,
+                        <cfqueryparam cfsqltype="cf_sql_varchar" value="#uploadFile#">,
+                        <cfqueryparam cfsqltype="cf_sql_integer" value="1">,
+                        <cfqueryparam cfsqltype="cf_sql_date" value="#now#">
+                    )
+                </cfquery>
+                <cfset session.success = 'User added successfully'>
+            </cfif>
+        <cfcatch type="any">
+            <cfset session.error = cfcatch>
+        </cfcatch>
+        </cftry>
+    </cfif>
 
-
-
-
-
-
-
-
-
-
-
-
-<?php
-	include 'includes/session.php';
-
-	if(isset($_POST['add'])){
-		$firstname = $_POST['firstname'];
-		$lastname = $_POST['lastname'];
-		$email = $_POST['email'];
-		$password = $_POST['password'];
-		$address = $_POST['address'];
-		$contact = $_POST['contact'];
-
-		$conn = $pdo->open();
-
-		$stmt = $conn->prepare("SELECT *, COUNT(*) AS numrows FROM users WHERE email=:email");
-		$stmt->execute(['email'=>$email]);
-		$row = $stmt->fetch();
-
-		if($row['numrows'] > 0){
-			$_SESSION['error'] = 'Email already taken';
-		}
-		else{
-			$password = password_hash($password, PASSWORD_DEFAULT);
-			$filename = $_FILES['photo']['name'];
-			$now = date('Y-m-d');
-			if(!empty($filename)){
-				move_uploaded_file($_FILES['photo']['tmp_name'], '../images/'.$filename);	
-			}
-			try{
-				$stmt = $conn->prepare("INSERT INTO users (email, password, firstname, lastname, address, contact_info, photo, status, created_on) VALUES (:email, :password, :firstname, :lastname, :address, :contact, :photo, :status, :created_on)");
-				$stmt->execute(['email'=>$email, 'password'=>$password, 'firstname'=>$firstname, 'lastname'=>$lastname, 'address'=>$address, 'contact'=>$contact, 'photo'=>$filename, 'status'=>1, 'created_on'=>$now]);
-				$_SESSION['success'] = 'User added successfully';
-
-			}
-			catch(PDOException $e){
-				$_SESSION['error'] = $e->getMessage();
-			}
-		}
-
-		$pdo->close();
-	}
-	else{
-		$_SESSION['error'] = 'Fill up user form first';
-	}
-
-	header('location: users.php');
-
-?>
+    <cflocation url="users.cfm">
+</cfif>

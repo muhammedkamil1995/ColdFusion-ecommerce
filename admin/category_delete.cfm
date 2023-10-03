@@ -2,11 +2,8 @@
 
 <cfif structKeyExists(form, "delete")>
 	<cfset id = form.id>
-	<cfquery name="deleteQuery" datasource="#dsn#">
-		DELETE FROM category WHERE id = <cfqueryparam cfsqltype="cf_sql_integer" value="#id#">
-	</cfquery>
 	<cftry>
-		<cfquery datasource="#dsn#">
+		<cfquery name="deleteCategory" datasource="fashion" RETURNTYPE="array">
 			DELETE FROM category WHERE id = <cfqueryparam cfsqltype="cf_sql_integer" value="#id#">
 		</cfquery>
 		<cfset session.success = "Category deleted successfully">
@@ -14,7 +11,6 @@
 			<cfset session.error = cfcatch.message>
 		</cfcatch>
 	</cftry>
-	<cfset pdo.close()>
 <cfelse>
 	<cfset session.error = "Select category to delete first">
 </cfif>

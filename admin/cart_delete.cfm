@@ -1,12 +1,11 @@
 <cfinclude template="includes/session.cfm">
-
 <cfif structKeyExists(form, "delete")>
 	<cfset userid = form.userid>
 	<cfset cartid = form.cartid>
 
 	<cftry>
-		<cfquery name="deleteProduct" datasource="#dsn#">
-			DELETE FROM cart WHERE id = <cfqueryparam cfsqltype="cf_sql_integer" value="#cartid#">
+		<cfquery name="getUserCartDelete" datasource="fashion">
+			DELETE FROM cart WHERE id = <cfqueryparam cfsqltype="cf_sql_varchar" value="#cartid#">
 		</cfquery>
 		
 		<cfset session.success = "Product deleted from cart">

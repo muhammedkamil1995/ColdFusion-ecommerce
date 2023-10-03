@@ -1,17 +1,13 @@
 <cfinclude template="includes/session.cfm">
 
 <cfset output = "">
-<cfset conn = pdo.open()>
 
-<cfquery name="getCategories" datasource="#dsn#">
+<cfquery name="category" datasource="fashion">
     SELECT * FROM category
 </cfquery>
 
-<cfloop query="getCategories">
-    <cfset output &= "
-        <option value='#id#' class='append_items'>#name#</option>
-    ">
-</cfloop>
+<cfoutput query="category">
+    <cfset output &= " <option value='#id#' class='append_items'>#name#</option>">
+</cfoutput>
 
-<cfset pdo.close()>
 <cfoutput>#output#</cfoutput>

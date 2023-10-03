@@ -142,7 +142,7 @@
               <h4 class="modal-title"><b>Deleting...</b></h4>
             </div>
             <div class="modal-body">
-              <form class="form-horizontal" method="POST" action="users_delete.php">
+              <form class="form-horizontal" method="POST" action="users_delete.cfm">
                 <input type="hidden" class="userid" name="id">
                 <div class="text-center">
                     <p>DELETE USER</p>

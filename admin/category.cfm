@@ -65,11 +65,13 @@
                 <tbody>
                   <cfloop array="#categories#" index="category">
                     <tr>
-                      <cfoutput><td>#category.name#</td></cfoutput>
-                      <td>
-                        <button class="btn btn-success btn-sm edit btn-flat" data-id="#category.id#"><i class="fa fa-edit"></i> Edit</button>
-                        <button class="btn btn-danger btn-sm delete btn-flat" data-id="#category.id#"><i class="fa fa-trash"></i> Delete</button>
-                      </td>
+                      <cfoutput>
+                        <td>#category.name#</td>
+                        <td>
+                          <button class="btn btn-success btn-sm edit btn-flat" data-id="#category.id#"><i class="fa fa-edit"></i> Edit</button>
+                          <button class="btn btn-danger btn-sm delete btn-flat" data-id="#category.id#"><i class="fa fa-trash"></i> Delete</button>
+                        </td>
+                      </cfoutput>
                     </tr>
                   </cfloop>
                 </tbody>
@@ -110,9 +112,9 @@ function getRow(id){
     data: {id:id},
     dataType: 'json',
     success: function(response){
-      $('.catid').val(response.id);
-      $('#edit_name').val(response.name);
-      $('.catname').html(response.name);
+      $('.catid').val(response[0].id);
+      $('#edit_name').val(response[0].name);
+      $('.catname').html(response[0].name);
     }
   });
 }

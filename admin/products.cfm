@@ -62,7 +62,6 @@
                         <div class="pull-right">
                             <form class="form-inline">
                                 <div class="form-group">
-                                  <cfoutput>#catid#</cfoutput>
                                     <label>Category: </label>
                                     <select class="form-control input-sm" id="select_category">
                                         <option value="0">ALL</option>
@@ -200,13 +199,13 @@ function getRow(id){
     data: {id:id},
     dataType: 'json',
     success: function(response){
-      $('#desc').html(response.description);
-      $('.name').html(response.prodname);
-      $('.prodid').val(response.prodid);
-      $('#edit_name').val(response.prodname);
-      $('#catselected').val(response.category_id).html(response.catname);
-      $('#edit_price').val(response.price);
-      CKEDITOR.instances["editor2"].setData(response.description);
+      $('#desc').html(response[0].description);
+      $('.name').html(response[0].prodname);
+      $('.prodid').val(response[0].prodid);
+      $('#edit_name').val(response[0].prodname);
+      $('#catselected').val(response[0].category_id).html(response[0].catname);
+      $('#edit_price').val(response[0].price);
+      CKEDITOR.instances["editor2"].setData(response[0].description);
       getCategory();
     }
   });
@@ -215,7 +214,7 @@ function getCategory(){
   $.ajax({
     type: 'POST',
     url: 'category_fetch.cfm',
-    dataType: 'json',
+    dataType: 'html',
     success:function(response){
       $('#category').append(response);
       $('#edit_category').append(response);

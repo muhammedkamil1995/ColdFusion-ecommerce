@@ -1,49 +1,26 @@
-<cfscript>
-include 'includes/session.cfm';
+<cfinclude template="includes/session.cfm"> 
+<cfif isNumeric(form.id)>
+    <cfset id = form.id>
 
-if (structKeyExists(form, "id")) {
-    id = form.id;
+    <cfquery name="user" datasource="fashion">
+        SELECT * FROM users WHERE id = <cfqueryparam cfsqltype="cf_sql_integer" value="#id#">
+    </cfquery>
+    <cfset row = {}>
 
-  
-        queryService = new query();
-        queryService.setDatasource("fashion");
-        sql = "SELECT * FROM users WHERE id = :id";
-        queryService.addParam(name="id", value=id, cfsqltype="CF_SQL_INTEGER");
-        result = queryService.execute(sql=sql);
+    <cfif user.recordcount gt 0>
+        <cfoutput>
+            <cfset row.id = user.id>
+            <cfset row.firstname = user.firstname>
+            <cfset row.lastname = user.lastname>
+            <cfset row.email = user.email>
+            <cfset row.address = user.address>
+            <cfset row.contact_info = user.contact_info>
+        </cfoutput>
+    </cfif>
 
-        if (result.recordCount > 0) {
-            row = result[1];
-
-            // Convert the result to JSON
-            writeOutput(serializeJSON(row));
-        } else {
-            writeOutput('{"error": "User not found"}');
-        }
-    } catch (any e) {
-        writeOutput('{"error": "' & e.message & '"}');
-    }
-
-</cfscript>
-
-
-
-
-
-
-<?php 
-	include 'includes/session.php';
-
-	if(isset($_POST['id'])){
-		$id = $_POST['id'];
-		
-		$conn = $pdo->open();
-
-		$stmt = $conn->prepare("SELECT * FROM users WHERE id=:id");
-		$stmt->execute(['id'=>$id]);
-		$row = $stmt->fetch();
-		
-		$pdo->close();
-
-		echo json_encode($row);
-	}
-?>
+    <cfif structKeyExists(row, "id")>
+        <cfcontent type="application/json">
+        <cfoutput>#serializeJSON(row)#</cfoutput>
+        <cfabort>
+    </cfif>
+</cfif>

@@ -3,10 +3,10 @@
 
 <cfif structKeyExists(url, "user")>
 	<cfset userId = url.user>
-	<cfquery name="userQuery" datasource="#dsn#">
-		SELECT * FROM users WHERE id = <cfqueryparam cfsqltype="cf_sql_integer" value="#userId#">
+	<cfquery name="getUserCart" datasource="fashion">
+		SELECT * FROM users WHERE id = <cfqueryparam cfsqltype="cf_sql_varchar" value="#userId#">
 	</cfquery>
-	<cfset user = userQuery[1]>
+	<cfset user = #getUserCart#>
 </cfif>
 
 <cfinclude template="includes/header.cfm">
@@ -21,7 +21,7 @@
 					#user.firstname# #user.lastname#'s Cart
 				</h1>
 				<ol class="breadcrumb">
-					<li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+					<li><a href="##"><i class="fa fa-dashboard"></i> Home</a></li>
 					<li>Users</li>
 					<li class="active">Cart</li>
 				</ol>
@@ -31,21 +31,23 @@
 					<div class="alert alert-danger alert-dismissible">
 						<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
 						<h4><i class="icon fa fa-warning"></i> Error!</h4>
-						#session.error#
+						<output>#session.error#</output>
+						<cfset structDelete(session, "error")>
 					</div>
 				</cfif>
 				<cfif structKeyExists(session, "success")>
 					<div class="alert alert-success alert-dismissible">
 						<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
 						<h4><i class="icon fa fa-check"></i> Success!</h4>
-						#session.success#
+						<output>#session.success#</output>
+						<cfset structDelete(session, "success")>
 					</div>
 				</cfif>
 				<div class="row">
 					<div class="col-xs-12">
 						<div class="box">
 							<div class="box-header with-border">
-								<a href="#addnew" data-toggle="modal" id="add" data-id="#user.id#" class="btn btn-primary btn-sm btn-flat"><i class="fa fa-plus"></i> New</a>
+								<a href="##addnew" data-toggle="modal" id="add" data-id="#user.id#" class="btn btn-primary btn-sm btn-flat"><i class="fa fa-plus"></i> New</a>
 								<a href="users.cfm" class="btn btn-sm btn-primary btn-flat"><i class="fa fa-arrow-left"></i> Users</a>
 							</div>
 							<div class="box-body">
@@ -56,13 +58,13 @@
 										<th>Tools</th>
 									</thead>
 									<tbody>
-										<cfquery name="cartQuery" datasource="#dsn#">
+										<cfquery name="products" datasource="fashion">
 											SELECT *, cart.id AS cartid 
 											FROM cart 
 											LEFT JOIN products ON products.id = cart.product_id 
-											WHERE user_id = <cfqueryparam cfsqltype="cf_sql_integer" value="#user.id#">
+											WHERE user_id = <cfqueryparam cfsqltype="cf_sql_varchar" value="#user.id#">
 										</cfquery>
-										<cfloop query="cartQuery">
+										<cfloop query="products">
 											<tr>
 												<td>#name#</td>
 												<td>#quantity#</td>
@@ -80,40 +82,68 @@
 				</div>
 			</section>
 		</div>
+		</cfoutput>
 		<cfinclude template="includes/footer.cfm">
 		<cfinclude template="includes/cart_modal.cfm">
 	</div>
 	<!-- ./wrapper -->
 	<cfinclude template="includes/scripts.cfm">
 	<script>
-	$(function(){
-	  $(document).on('click', '.edit', function(e){
-		e.preventDefault();
-		$('#edit').modal('show');
-		var id = $(this).data('id');
-		getRow(id);
-	  });
+$(function(){
+  $(document).on('click', '.edit', function(e){
+    e.preventDefault();
+    $('#edit').modal('show');
+    var id = $(this).data('id');
+    getRow(id);
+  });
 
-	  $(document).on('click', '.delete', function(e){
-		e.preventDefault();
-		$('#delete').modal('show');
-		var id = $(this).data('id');
-		getRow(id);
-	  });
+  $(document).on('click', '.delete', function(e){
+    e.preventDefault();
+    $('#delete').modal('show');
+    var id = $(this).data('id');
+    getRow(id);
+  });
 
-	  $('#add').click(function(e){
-		e.preventDefault();
-		var id = $(this).data('id');
-		getProducts(id);
-	  });
+  $('#add').click(function(e){
+    e.preventDefault();
+    var id = $(this).data('id');
+    getProducts(id);
+  });
 
-	  $("#addnew").on("hidden.bs.modal", function () {
-		  $('.append_items').remove();
-	  });
+  $("#addnew").on("hidden.bs.modal", function () {
+      $('.append_items').remove();
+  });
 
-	});
+});
 
-	function getProducts(id){
-	  $.ajax({
-		type: 'POST',
-		url: 'products_all.cfm',
+function getProducts(id){
+  $.ajax({
+    type: 'POST',
+    url: 'products_all.cfm',
+    dataType: 'html',
+    success: function(response){
+	  console.log(response)
+      $('#product').append(response);
+      $('.userid').val(id);
+    }
+  });
+}
+
+function getRow(id){
+  $.ajax({
+    type: 'POST',
+    url: 'cart_row.cfm',
+    data: {id:id},
+    dataType: 'json',
+    success: function(response){
+		console.log(response[0].cartid)
+      $('.cartid').val(response[0].cartid);
+      $('.userid').val(response[0].user_id);
+      $('.productname').html(response[0].name);
+      $('#edit_quantity').val(response[0].quantity);
+    }
+  });
+}
+</script>
+</body>
+</html>

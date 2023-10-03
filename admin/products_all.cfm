@@ -1,21 +1,18 @@
-<cfscript>
-    include 'includes/session.cfm';
+<cfinclude template="includes/session.cfm">
 
-    output = [];
-    queryService = new query();
-    queryService.setDatasource("fashion");
-    queryService.setName("stmt");
-    queryService.setSql("SELECT * FROM products");
-    result = queryService.execute();
+<cfset output = "">
 
-    for (row in result.getResult()) {
-        arrayAppend(output, {
-            "value": row.id,
-            "class": "append_items",
-            "name": row.name
-        });
-    }
+<cftry>
+    <cfquery name="getProducts" datasource="fashion">
+        SELECT * FROM products
+    </cfquery>
+    <cfoutput query="getProducts">
+        <cfset output &= "<option value='#getProducts.id#' class='append_items'>#getProducts.name#</option>">
+    </cfoutput>
 
-    WriteOutput(serializeJSON(output));
-</cfscript>
+    <cfcatch type="any">
+        <cfset output &= "An error occurred: #cfcatch.message#">
+    </cfcatch>
+</cftry>
 
+<cfoutput>#output#</cfoutput>

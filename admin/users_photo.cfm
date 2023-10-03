@@ -1,78 +1,83 @@
-<cfscript>
-    include 'includes/session.cfm';
+<cfinclude template="includes/session.cfm"> 
+<cfparam name="form.upload" default="">
+<cfif structKeyExists(form, "photo") and structKeyExists(form, "id")>	
+    <cfset id = form.id >
 
-    if (structKeyExists(form, "upload")) {
-        id = form.id;
-        filename = form.photo.name;
+    <cfif isDefined("form.photo") and len(trim(form.photo)) gt 0 and structKeyExists(form, "photo") && len(trim(form.photo))>
+        <cfset filename = expandpath('../images/')>
 
-        // Check if a file was uploaded
-        if (len(filename) > 0) {
-            destinationFolder = expandPath("../images/");
-            fileUpload(destinationFolder, "photo", "auto");
-            fullFilePath = destinationFolder & filename;
-        } else {
-            fullFilePath = ""; // No file uploaded
-        }
+        <cftry>
+            <cffile action="upload" filefield="form.photo" destination="#filename#" 
+            nameconflict="MAKEUNIQUE" accept="image/jpg,image/jpeg,image/png,image/gif" 
+            allowedExtensions=".png,.jpg,.jpeg,.gif" result="upload">
+        <cfcatch type="any">
+            <cfif FindNoCase( "No data was received in the uploaded", cfcatch.message )>
+                <cfset session.error = "Zero length file">
 
-        try {
-            queryService = new QueryExecute();
-            sql = "UPDATE users SET photo = :photo WHERE id = :id";
+            <!--- prevent invalid file types --->
+            <cfelseif FindNoCase( "The MIME type or the Extension of the uploaded file", cfcatch.message )>
+                <cfset session.error = "Invalid file type">
 
-            // Define the SQL parameters
-            params = {
-                id: { value: id, cfsqltype: "cf_sql_integer" },
-                photo: { value: filename, cfsqltype: "cf_sql_varchar" }
-            };
+            <!--- prevent empty form field --->
+            <cfelseif FindNoCase( "did not contain a file.", cfcatch.message )>
+                <cfset session.error = "Empty form field">
 
-            result = queryService.execute(sql, params);
+            <!---all other errors --->
+            <cfelse>
+                <cfset session.error = "Unhandled File Upload Error">
 
-            if (result.recordCount > 0) {
-                session.success = 'User photo updated successfully';
-            } else {
-                session.error = 'Failed to update user photo';
-            }
-        } catch (any e) {
-            // Handle exceptions
-            session.error = "An error occurred: " & e.getMessage();
-        }
-    } else {
-        session.error = 'Select user to update photo first';
-    }
+            </cfif>
+        </cfcatch>
+        </cftry>
 
-    // Redirect to the users.php page
-    location("users.cfm");
-</cfscript>
+        <cfif isDefined("upload") and not listFindNoCase("jpg,jpeg,png,gif", upload.serverFileExt)>
+            <cffile action="delete" file="#upload.ServerDirectory#/#upload.ServerFile#" >
+            <cfset session.error = "Invalid file type (checked)">
+        </cfif>
 
+        <!-- Check the file size (not more than 5MB) -->
+        <cfif isDefined("upload") and upload.fileWasSaved>
+            <cfset newFileName = createUUID() & "." & upload.SERVERFILEEXT>
+            <cfset renameFile = upload.SERVERDIRECTORY & "\" & newFileName>
+            <cfset uploadFile = upload.SERVERDIRECTORY & "\" & upload.SERVERFILE>
+            <cfif not isImageFile(uploadFile)>
+                <cfset session.error = "Please include a VALID picture">
+                <cffile action="delete" file="#uploadFile#"> 
+            <cfelseif upload.filesize gt 5000000 >
+                <cfset session.error = "Your image cannot be larger than 5MB!">
+            <cfelse>
+                <cffile action="rename" source="#uploadFile#" destination="#renameFile#" attributes="normal" result="rename">
+            </cfif>
+        </cfif>
+    </cfif>
 
+    <cfif not isDefined("newFileName")>
+        <cfset uploadFile = ''>
+    <cfelse>
+        <cfset uploadFile = newFileName>
+    </cfif>
 
+    <cftry>
+        <cfif not structKeyExists(session, 'error') >
+        <cfquery name="getUsersPhoto" datasource="fashion">
+            SELECT photo from users WHERE
+            id = <cfqueryparam cfsqltype="cf_sql_integer" value="#id#">
+        </cfquery>
+        <cfif isDefined("getUsersPhoto.photo") and len(trim(getUsersPhoto.photo)) GT 0>
+            <cfset deletedFile = upload.SERVERDIRECTORY & "\" & getUsersPhoto.photo>
+            <cffile action="delete" file="#deletedFile#"> 
+        </cfif>
+        <cfquery name="users" datasource="fashion">
+            UPDATE users
+            SET photo = <cfqueryparam cfsqltype="cf_sql_varchar" value="#uploadFile#">
+            WHERE id = <cfqueryparam cfsqltype="cf_sql_integer" value="#id#">
+        </cfquery>
+        <cfset session.success = 'User photo updated successfully'>
+        </cfif>
+    <cfcatch type="any">
+        <cfset session.error = cfcatch.message>
+    </cfcatch>
+    </cftry>
 
-<?php
-	include 'includes/session.php';
-
-	if(isset($_POST['upload'])){
-		$id = $_POST['id'];
-		$filename = $_FILES['photo']['name'];
-		if(!empty($filename)){
-			move_uploaded_file($_FILES['photo']['tmp_name'], '../images/'.$filename);	
-		}
-		
-		$conn = $pdo->open();
-
-		try{
-			$stmt = $conn->prepare("UPDATE users SET photo=:photo WHERE id=:id");
-			$stmt->execute(['photo'=>$filename, 'id'=>$id]);
-			$_SESSION['success'] = 'User photo updated successfully';
-		}
-		catch(PDOException $e){
-			$_SESSION['error'] = $e->getMessage();
-		}
-
-		$pdo->close();
-
-	}
-	else{
-		$_SESSION['error'] = 'Select user to update photo first';
-	}
-
-	header('location: users.php');
-?>
+    <cflocation url="users.cfm">
+</cfif>

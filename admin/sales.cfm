@@ -8,8 +8,6 @@
   <cfinclude template="includes/menubar.cfm">
 
 
-
-
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
@@ -18,7 +16,7 @@
         Sales History
       </h1>
       <ol class="breadcrumb">
-        <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li><a href="##"><i class="fa fa-dashboard"></i> Home</a></li>
         <li class="active">Sales</li>
       </ol>
     </section>
@@ -107,8 +105,8 @@
      
   </div>
 
-    <cfinclude template="includes/footer.cfm">
-    <cfinclude template="includes/profile_modal.cfm">
+  <cfinclude template="includes/footer.cfm">
+  <cfinclude template="includes/profile_modal.cfm">
 
 
 </div>
@@ -158,6 +156,7 @@ $(function(){
   
 });
 </script>
+
 <script>
 $(function(){
   $(document).on('click', '.transact', function(e){
@@ -169,7 +168,7 @@ $(function(){
       url: 'transact.cfm',
       data: {id:id},
       dataType: 'json',
-      success:function(response){
+      success: function(response){
         $('#date').html(response.date);
         $('#transid').html(response.transaction);
         $('#detail').prepend(response.list);

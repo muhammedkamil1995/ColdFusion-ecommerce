@@ -1,44 +1,51 @@
-<?php
-	include 'includes/session.php';
+<cfinclude template="includes/session.cfm"> 
+<cfparam name="form.edit" default="">
+<cfif structKeyExists(form, "edit")>
+    <cfset id = form.id>
+    <cfset firstname = form.firstname>
+    <cfset lastname = form.lastname>
+    <cfset email = form.email>
+    <cfset password = form.password>
+    <cfset address = form.address>
+    <cfset contact = form.contact>
 
-	if(isset($_POST['edit'])){
-		$id = $_POST['id'];
-		$firstname = $_POST['firstname'];
-		$lastname = $_POST['lastname'];
-		$email = $_POST['email'];
-		$password = $_POST['password'];
-		$address = $_POST['address'];
-		$contact = $_POST['contact'];
+    <cftry>
+        <cfif isDefined('password') and Trim(len(password)) GT 5 >
+            <cfscript> 
+                options = StructNew() 
+                options.rounds = 4 
+                options.version = "$2a" 
+            </cfscript>
+            <cfset hashPassword = GenerateBCryptHash(password, options)>
 
-		$conn = $pdo->open();
-		$stmt = $conn->prepare("SELECT * FROM users WHERE id=:id");
-		$stmt->execute(['id'=>$id]);
-		$row = $stmt->fetch();
+            <cfquery name="editUsers" datasource="fashion">
+                UPDATE users
+                SET email = <cfqueryparam cfsqltype="cf_sql_varchar" value="#email#">,
+                    password = <cfqueryparam cfsqltype="cf_sql_varchar" value="#hashPassword#">,
+                    firstname = <cfqueryparam cfsqltype="cf_sql_varchar" value="#firstname#">,
+                    lastname = <cfqueryparam cfsqltype="cf_sql_varchar" value="#lastname#">,
+                    address = <cfqueryparam cfsqltype="cf_sql_varchar" value="#address#">,
+                    contact_info = <cfqueryparam cfsqltype="cf_sql_varchar" value="#contact#">
+                WHERE id = <cfqueryparam cfsqltype="cf_sql_integer" value="#id#">
+            </cfquery>
+        <cfelse>
 
-		if($password == $row['password']){
-			$password = $row['password'];
-		}
-		else{
-			$password = password_hash($password, PASSWORD_DEFAULT);
-		}
+            <cfquery name="editUsers" datasource="fashion">
+                UPDATE users
+                SET email = <cfqueryparam cfsqltype="cf_sql_varchar" value="#email#">,
+                    firstname = <cfqueryparam cfsqltype="cf_sql_varchar" value="#firstname#">,
+                    lastname = <cfqueryparam cfsqltype="cf_sql_varchar" value="#lastname#">,
+                    address = <cfqueryparam cfsqltype="cf_sql_varchar" value="#address#">,
+                    contact_info = <cfqueryparam cfsqltype="cf_sql_varchar" value="#contact#">
+                WHERE id = <cfqueryparam cfsqltype="cf_sql_integer" value="#id#">
+            </cfquery>
+        </cfif>
+        
+        <cfset session.success = "User updated successfully">
+    <cfcatch type="any">
+        <cfset session.error = cfcatch.message>
+    </cfcatch>
+    </cftry>
 
-		try{
-			$stmt = $conn->prepare("UPDATE users SET email=:email, password=:password, firstname=:firstname, lastname=:lastname, address=:address, contact_info=:contact WHERE id=:id");
-			$stmt->execute(['email'=>$email, 'password'=>$password, 'firstname'=>$firstname, 'lastname'=>$lastname, 'address'=>$address, 'contact'=>$contact, 'id'=>$id]);
-			$_SESSION['success'] = 'User updated successfully';
-
-		}
-		catch(PDOException $e){
-			$_SESSION['error'] = $e->getMessage();
-		}
-		
-
-		$pdo->close();
-	}
-	else{
-		$_SESSION['error'] = 'Fill up edit user form first';
-	}
-
-	header('location: users.php');
-
-?>
+<cflocation url="users.cfm">
+</cfif>
